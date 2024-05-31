@@ -28,9 +28,9 @@ class BaseUserManager(BUM):
         
         return user
     
-    def create_superuser(self, email, password=None):
+    def create_superuser(self, emailz, password=None):
         user = self.create_user(
-            email=email,
+            email=emailz,
             is_active=True,
             is_admin=True,
             password=password,
@@ -41,7 +41,7 @@ class BaseUserManager(BUM):
 
         return user
     
-
+# Base User class
 class BaseUser(BaseModel, AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(
         verbose_name="email address",
