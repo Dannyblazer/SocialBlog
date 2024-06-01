@@ -1,4 +1,3 @@
-import email
 import uuid
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.contrib.auth.models import BaseUserManager as BUM
@@ -59,7 +58,7 @@ class BaseUser(BaseModel, AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
 
     def __str__(self):
-        return self.email
+        return f"{self.email}"
     
     def is_staff(self):
         return self.is_admin
@@ -71,3 +70,4 @@ class Profile(models.Model):
     bio = models.TextField(max_length=500, blank=True)
     location = models.CharField(max_length=30, blank=True)
     birth_date = models.DateField(null=True, blank=True)
+

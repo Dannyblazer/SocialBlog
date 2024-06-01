@@ -8,4 +8,7 @@ env/
 /static_cdn/
 /static/
 /blog/__pycache__/
+/socialblog/__pycache__/
+/user/__pycache__/
 pyvenv.*
+db.sqlite3
