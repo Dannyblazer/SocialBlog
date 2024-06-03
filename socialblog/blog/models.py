@@ -1,7 +1,6 @@
 from django.db import models
 #from django.utils import timezone
 from common.models import BaseModel
-# Remember to change this user model import from settings
 from django.conf import settings
 # Create your models here.
 
