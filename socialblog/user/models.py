@@ -30,9 +30,9 @@ class BaseUserManager(BUM):
         
         return user
     
-    def create_superuser(self, emailz, password=None):
+    def create_superuser(self, email, password=None):
         user = self.create_user(
-            email=emailz,
+            email=email,
             is_active=True,
             is_admin=True,
             password=password,
