@@ -127,6 +127,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'user.BaseUser'
 
-FILE_UPLOAD_STORAGE = 'Local' # or S3
+FILE_UPLOAD_STORAGE = 'local' # or S3
 
 APP_DOMAIN = 'localhost:3000' # or live server domain
+
+FILE_MAX_SIZE = 30000 # Size in bytes
