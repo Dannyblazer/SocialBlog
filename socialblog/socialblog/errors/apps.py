@@ -2,4 +2,5 @@ from django.apps import AppConfig
 
 
 class ErrorsConfig(AppConfig):
-    name = "styleguide_example.errors"
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = "errors"
