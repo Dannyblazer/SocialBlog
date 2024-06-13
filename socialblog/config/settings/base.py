@@ -3,7 +3,7 @@
 
 from pathlib import Path
 
-import environ
+import environ, os
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # socialblog/
@@ -48,10 +48,17 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 #DATABASES = {"default": env.db("DATABASE_URL")}
+DB_NAME = "social_db"
+DB_USER = "taskitly"
+DB_PASSWORD = "taskitlyforlife"
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
@@ -77,6 +84,8 @@ DJANGO_APPS = [
     # "django.contrib.humanize", # Handy template tags
     "django.contrib.admin",
     "django.forms",
+
+
 ]
 THIRD_PARTY_APPS = [
     "crispy_forms",
@@ -94,7 +103,18 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    "socialblog.user",
+    "user",
+    "core",
+    "files",
+    "api",
+    "blog",
+    "common",
+    "emails",
+    "errors",
+    "tasks",
+    "integrations",
+    "testing_examples",
+    "blog_examples"
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -108,10 +128,10 @@ MIGRATION_MODULES = {"sites": "socialblog.contrib.sites.migrations"}
 # AUTHENTICATION
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#authentication-backends
-AUTHENTICATION_BACKENDS = [
+"""AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
-]
+]"""
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-user-model
 AUTH_USER_MODEL = "user.BaseUser"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
@@ -182,29 +202,19 @@ MEDIA_URL = "/media/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#templates
 TEMPLATES = [
     {
-        # https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-TEMPLATES-BACKEND
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        # https://docs.djangoproject.com/en/dev/ref/settings/#dirs
-        "DIRS": [str(APPS_DIR / "templates")],
-        # https://docs.djangoproject.com/en/dev/ref/settings/#app-dirs
+        "DIRS": [os.path.join(APPS_DIR, "templates")],
         "APP_DIRS": True,
         "OPTIONS": {
-            # https://docs.djangoproject.com/en/dev/ref/settings/#template-context-processors
             "context_processors": [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
-                "django.template.context_processors.i18n",
-                "django.template.context_processors.media",
-                "django.template.context_processors.static",
-                "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
-                "socialblog.user.context_processors.allauth_settings",
             ],
         },
     },
 ]
-
 # https://docs.djangoproject.com/en/dev/ref/settings/#form-renderer
 FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
 
@@ -271,6 +281,8 @@ LOGGING = {
     "root": {"level": "INFO", "handlers": ["console"]},
 }
 
+AUTH_USER_MODEL = "user.BaseUser"
+
 # Celery
 # ------------------------------------------------------------------------------
 if USE_TZ:
@@ -320,24 +332,22 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 # https://docs.allauth.org/en/latest/account/configuration.html
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 # https://docs.allauth.org/en/latest/account/configuration.html
-ACCOUNT_ADAPTER = "socialblog.user.adapters.AccountAdapter"
+"""ACCOUNT_ADAPTER = "user.adapters.AccountAdapter"
 # https://docs.allauth.org/en/latest/account/forms.html
-ACCOUNT_FORMS = {"signup": "socialblog.user.forms.UserSignupForm"}
+ACCOUNT_FORMS = {"signup": "user.forms.UserSignupForm"}
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
-SOCIALACCOUNT_ADAPTER = "socialblog.user.adapters.SocialAccountAdapter"
+SOCIALACCOUNT_ADAPTER = "user.adapters.SocialAccountAdapter"
 # https://docs.allauth.org/en/latest/socialaccount/configuration.html
-SOCIALACCOUNT_FORMS = {"signup": "socialblog.user.forms.UserSocialSignupForm"}
-
+SOCIALACCOUNT_FORMS = {"signup": "user.forms.UserSocialSignupForm"}
+"""
 # django-rest-framework
 # -------------------------------------------------------------------------------
 # django-rest-framework - https://www.django-rest-framework.org/api-guide/settings/
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework.authentication.SessionAuthentication",
-        "rest_framework.authentication.TokenAuthentication",
-    ),
-    "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "EXCEPTION_HANDLER": "api.exception_handlers.drf_default_with_modifications_exception_handler",
+    # 'EXCEPTION_HANDLER': 'styleguide_example.api.exception_handlers.hacksoft_proposed_exception_handler',
+    "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
+    "DEFAULT_AUTHENTICATION_CLASSES": [],
 }
 
 # django-cors-headers - https://github.com/adamchainz/django-cors-headers#setup
