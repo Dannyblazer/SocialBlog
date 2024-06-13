@@ -38,3 +38,4 @@ Overall, this advanced social media blog with Django provides a robust platform 
 - Django-channels
 - Rest Api
 - HTML/CSS
+- cookie cutter
