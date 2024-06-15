@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from styleguide_example.emails.models import Email
-from styleguide_example.emails.services import email_send_all
+from emails.models import Email
+from emails.services import email_send_all
 
 
 @admin.register(Email)
