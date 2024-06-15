@@ -103,6 +103,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    "authentication",
     "user",
     "core",
     "files",
