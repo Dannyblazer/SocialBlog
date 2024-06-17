@@ -2,8 +2,8 @@ from django.contrib import admin
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.urls import path, reverse
 
-from styleguide_example.blog_examples.admin_2fa.models import UserTwoFactorAuthData
-from styleguide_example.blog_examples.admin_2fa.views import (
+from blog_examples.admin_2fa.models import UserTwoFactorAuthData
+from blog_examples.admin_2fa.views import (
     AdminConfirmTwoFactorAuthView,
     AdminSetupTwoFactorAuthView,
 )
