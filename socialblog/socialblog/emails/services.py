@@ -6,10 +6,10 @@ from django.db import transaction
 from django.db.models.query import QuerySet
 from django.utils import timezone
 
-from styleguide_example.common.services import model_update
-from styleguide_example.core.exceptions import ApplicationError
-from styleguide_example.emails.models import Email
-from styleguide_example.emails.tasks import email_send as email_send_task
+from common.services import model_update
+from core.exceptions import ApplicationError
+from emails.models import Email
+from emails.tasks import email_send as email_send_task
 
 
 @transaction.atomic
