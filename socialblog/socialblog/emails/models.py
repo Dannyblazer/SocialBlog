@@ -1,6 +1,6 @@
 from django.db import models
 
-from styleguide_example.common.models import BaseModel
+from common.models import BaseModel
 
 
 class Email(BaseModel):
