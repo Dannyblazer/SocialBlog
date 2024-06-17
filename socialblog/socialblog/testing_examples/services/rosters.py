@@ -3,7 +3,7 @@ from typing import Optional
 
 from django.core.exceptions import ValidationError
 
-from styleguide_example.testing_examples.models import Roster, SchoolCourse, Student
+from testing_examples.models import Roster, SchoolCourse, Student
 
 ROSTER_VALIDATE_PERIOD_OUTSIDE_COURSE_PERIOD = "Roster period cannot be outside {school_course} period"
 ROSTER_CREATE_DIFFERENT_SCHOOLS = "Cannot roster {student} in {school_course}"

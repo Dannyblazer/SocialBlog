@@ -4,7 +4,7 @@ from typing import Iterable, Optional
 from django.db import transaction
 from django.utils.text import slugify
 
-from styleguide_example.testing_examples.models import (
+from testing_examples.models import (
     Roster,
     School,
     SchoolCourse,

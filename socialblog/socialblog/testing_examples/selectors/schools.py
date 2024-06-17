@@ -4,7 +4,7 @@ from typing import Optional
 from django.core.exceptions import ValidationError
 from django.db.models import Q, QuerySet
 
-from styleguide_example.testing_examples.models import School, SchoolCourse
+from testing_examples.models import School, SchoolCourse
 
 SCHOOL_LIST_SCHOOL_COURSES_PROVIDE_START_DATE_MSG = (
     "Provide `start_date` in order to list all School Courses for a period."

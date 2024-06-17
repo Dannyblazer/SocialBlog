@@ -4,11 +4,11 @@ from typing import Optional
 from django.db import transaction
 from django.utils import timezone
 
-from styleguide_example.testing_examples.models import School, Student
-from styleguide_example.testing_examples.selectors.schools import (
+from testing_examples.models import School, Student
+from testing_examples.selectors.schools import (
     school_list_school_courses,
 )
-from styleguide_example.testing_examples.services.rosters import roster_create
+from testing_examples.services.rosters import roster_create
 
 
 @transaction.atomic
