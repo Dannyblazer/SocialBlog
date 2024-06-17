@@ -1,7 +1,7 @@
 from celery import shared_task
 from celery.utils.log import get_task_logger
 
-from styleguide_example.emails.models import Email
+from emails.models import Email
 
 logger = get_task_logger(__name__)
 
@@ -10,7 +10,7 @@ def _email_send_failure(self, exc, task_id, args, kwargs, einfo):
     email_id = args[0]
     email = Email.objects.get(id=email_id)
 
-    from styleguide_example.emails.services import email_failed
+    from emails.services import email_failed
 
     email_failed(email)
 
@@ -19,7 +19,7 @@ def _email_send_failure(self, exc, task_id, args, kwargs, einfo):
 def email_send(self, email_id):
     email = Email.objects.get(id=email_id)
 
-    from styleguide_example.emails.services import email_send
+    from emails.services import email_send
 
     try:
         email_send(email)
