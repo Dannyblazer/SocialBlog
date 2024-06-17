@@ -7,8 +7,8 @@ from django.http import Http404
 from rest_framework import exceptions, serializers
 from rest_framework.exceptions import ValidationError as RestValidationError
 
-from styleguide_example.core.exceptions import ApplicationError
-from styleguide_example.users.models import BaseUser
+from core.exceptions import ApplicationError
+from user.models import BaseUser
 
 
 class NestedSerializer(serializers.Serializer):
