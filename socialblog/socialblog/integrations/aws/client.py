@@ -4,7 +4,7 @@ from typing import Any, Dict
 import boto3
 from attrs import define
 
-from styleguide_example.common.utils import assert_settings
+from common.utils import assert_settings
 
 
 @define
