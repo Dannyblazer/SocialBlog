@@ -1,16 +1,16 @@
 from typing import Optional
 from django.db import transaction
 
-from.models import Blog
+from.models import Blog, Comment
 from common.services import model_update
 from user.models import BaseUser
 
 
 
 def blog_create(
-    *, author: BaseUser, title: str, body: str, like: int
+    *, author: BaseUser, title: str, body: str
 ) -> Blog:
-    blog = Blog.objects.create(author=author, title=title, body=body, like=like)
+    blog = Blog.objects.create(author=author, title=title, body=body)
 
     return blog
 
@@ -25,4 +25,13 @@ def blog_update(*, blog: Blog, data) -> Blog:
 
     # ... some additional tasks with the user ...
 
-    return user
+    return user, has_updated
+
+
+
+def comment_create(
+    *, owner: BaseUser, post: Blog, body: str
+) -> Blog:
+    comment = Comment.objects.create(owner=owner, post=post, body=body)
+
+    return comment
