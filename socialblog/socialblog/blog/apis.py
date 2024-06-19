@@ -1,14 +1,12 @@
-from pyexpat import model
+
 from tokenize import Comment
-from django.conf import settings
 from rest_framework.views import APIView
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers, status
 from rest_framework.response import Response
 
 from api.mixins import ApiAuthMixin
 from user.models import BaseUser
-from .selectors import blog_list, blog_get
+from .selectors import blog_list, blog_get, comment_list, blog_delete
 from api.pagination import (
     LimitOffsetPagination,
     get_paginated_response,
@@ -73,7 +71,7 @@ class BlogListApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         id = serializers.IntegerField(required=False)
         author = serializers.SlugRelatedField(
-            slug_field='author',
+            slug_field='email',
             queryset=BaseUser.objects.all(),
             required=False
         )
@@ -99,6 +97,14 @@ class BlogListApi(ApiAuthMixin, APIView):
         )
 
 
+class BlogDeleteApi(ApiAuthMixin, APIView):
+    def post(self, request, blog_id):
+        blog = blog_get(blog_id)
+        if request.user == blog.author:
+            blog_delete(blog)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+
 
 class CommentCreateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
@@ -118,3 +124,28 @@ class CommentCreateApi(ApiAuthMixin, APIView):
 
         return Response(status=status.HTTP_201_CREATED)
     
+
+class CommentListApi(APIView):
+    class Pagination(LimitOffsetPagination):
+        default_limit = 3
+
+    class OutputSerializer(serializers.Serializer):
+        owner = serializers.SlugRelatedField(
+            slug_field='email',
+            queryset=BaseUser.objects.all()
+            )
+        body = serializers.CharField()
+        created_at = serializers.DateTimeField()
+        
+    
+    def get(self, request, blog_id):
+
+        comments = comment_list(blog_id)
+        
+        return get_paginated_response(
+            pagination_class=self.Pagination,
+            serializer_class=self.OutputSerializer,
+            queryset=comments,
+            request=request,
+            view=self,
+        )
