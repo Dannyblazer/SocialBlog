@@ -18,8 +18,8 @@ class Blog(BaseModel):
 
 
 class Comment(BaseModel):
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments')
-    post  = models.ForeignKey(Blog, on_delete=models.CASCADE, related_name='posts')
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comment')
+    post  = models.ForeignKey(Blog, on_delete=models.CASCADE, related_name='comments')
     body  = models.TextField()
 
     def __str__(self):
