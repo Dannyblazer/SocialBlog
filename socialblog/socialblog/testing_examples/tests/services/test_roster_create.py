@@ -5,12 +5,12 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 
-from styleguide_example.testing_examples.models import Roster
-from styleguide_example.testing_examples.services import (
+from testing_examples.models import Roster
+from testing_examples.services import (
     ROSTER_CREATE_DIFFERENT_SCHOOLS,
     roster_create,
 )
-from styleguide_example.testing_examples.tests.factories import (
+from testing_examples.tests.factories import (
     SchoolCourseFactory,
     StudentFactory,
 )
