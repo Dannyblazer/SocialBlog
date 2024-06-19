@@ -5,15 +5,15 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 
-from styleguide_example.testing_examples.selectors import (
+from testing_examples.selectors import (
     SCHOOL_LIST_SCHOOL_COURSES_PROVIDE_START_DATE_MSG,
     school_list_school_courses,
 )
-from styleguide_example.testing_examples.tests.factories import (
+from testing_examples.tests.factories import (
     SchoolCourseFactory,
     SchoolFactory,
 )
-from styleguide_example.utils.tests import faker
+from utils.tests import faker
 
 
 class SchoolListSchoolCoursesTests(TestCase):
