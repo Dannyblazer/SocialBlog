@@ -3,11 +3,11 @@ from datetime import timedelta
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from styleguide_example.testing_examples.services import (
+from testing_examples.services import (
     ROSTER_VALIDATE_PERIOD_OUTSIDE_COURSE_PERIOD,
     roster_validate_period,
 )
-from styleguide_example.testing_examples.tests.factories import SchoolCourseFactory
+from testing_examples.tests.factories import SchoolCourseFactory
 
 
 class RosterValidatePeriodTests(TestCase):
