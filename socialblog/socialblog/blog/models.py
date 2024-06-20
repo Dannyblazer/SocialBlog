@@ -10,7 +10,6 @@ class Blog(BaseModel):
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='blogs')
     title = models.CharField(max_length=100)
     body  = models.TextField()
-    like = models.IntegerField(blank=True, null=True)
 
 
     def __str__(self):
@@ -26,4 +25,9 @@ class Comment(BaseModel):
         return f"{self.owner}"
     
 
-    
+class Like(BaseModel):
+    blog = models.OneToOneField(Blog, on_delete=models.CASCADE, related_name='like')
+    users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_blogs')
+
+    def __str__(self):
+        return f"Likes for {self.blog.title}"
