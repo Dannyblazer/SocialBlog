@@ -2,12 +2,12 @@ from unittest.mock import patch
 
 from django.test import TestCase
 
-from styleguide_example.testing_examples.services import student_create
-from styleguide_example.testing_examples.tests.factories import (
+from testing_examples.services import student_create
+from testing_examples.tests.factories import (
     SchoolCourseFactory,
     SchoolFactory,
 )
-from styleguide_example.utils.tests import faker
+from utils.tests import faker
 
 
 class StudentCreateTests(TestCase):
