@@ -6,13 +6,13 @@ from rest_framework.response import Response
 
 from api.mixins import ApiAuthMixin
 from user.models import BaseUser
-from .selectors import blog_list, blog_get, comment_list, blog_delete
+from .selectors import blog_list, blog_get, comment_list
 from api.pagination import (
     LimitOffsetPagination,
     get_paginated_response,
 )
 from .models import Blog
-from .services import blog_create, blog_update, comment_create
+from .services import blog_create, blog_update, comment_create, blog_like, blog_delete
 
 
 
@@ -56,10 +56,10 @@ class BlogUpdateApi(ApiAuthMixin, APIView):
 
         if request.user == blog.author:
             
-            new_blog, update_status = blog_update(blog=blog, data=input_serializer.validated_data)
+            new_blog = blog_update(blog=blog, data=input_serializer.validated_data)
             output = self.OutputSerializer(new_blog)
             # Remove the update response later
-            return Response({"update_status": update_status, "data": output.data}, status=status.HTTP_202_ACCEPTED)
+            return Response({"data": output.data}, status=status.HTTP_202_ACCEPTED)
         return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -77,10 +77,18 @@ class BlogListApi(ApiAuthMixin, APIView):
         )
         title = serializers.CharField(max_length=100, required=False)
 
-    class OutputSerializer(serializers.ModelSerializer):
-        class Meta:
-            model = Blog
-            fields = "__all__"
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+        author = serializers.SlugRelatedField(
+            slug_field='email',
+            queryset = BaseUser.objects.all()
+        )
+        title = serializers.CharField()
+        body = serializers.CharField()
+        like = serializers.IntegerField()
+        created_at = serializers.DateTimeField()
+        updated_at = serializers.DateTimeField()
+
 
     def get(self, request):
         input_serializer = self.InputSerializer(data=request.query_params)
@@ -104,6 +112,17 @@ class BlogDeleteApi(ApiAuthMixin, APIView):
             blog_delete(blog)
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+
+
+class BlogLikeApi(ApiAuthMixin, APIView):
+    def post(self, request, blog_id):
+        blog = blog_get(blog_id)
+        user = request.user
+        likeable = blog_like(user, blog)
+        if likeable:
+            return Response(status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 class CommentCreateApi(ApiAuthMixin, APIView):
@@ -137,9 +156,7 @@ class CommentListApi(APIView):
         body = serializers.CharField()
         created_at = serializers.DateTimeField()
         
-    
     def get(self, request, blog_id):
-
         comments = comment_list(blog_id)
         
         return get_paginated_response(
@@ -149,3 +166,5 @@ class CommentListApi(APIView):
             request=request,
             view=self,
         )
+
+
