@@ -1,6 +1,6 @@
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
-from .models import Blog
+from .models import Blog, Comment
 from .filters import BlogFilter
 
 
@@ -18,4 +18,7 @@ def comment_list(blog_id: int) -> QuerySet[Blog]:
     qs = Blog.objects.prefetch_related('comments').get(pk=blog_id)
     return qs.comments.all()
 
+
+def comment_get(comment_id):
+    return get_object_or_404(Comment, pk=comment_id)
 
