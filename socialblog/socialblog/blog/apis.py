@@ -6,13 +6,13 @@ from rest_framework.response import Response
 
 from api.mixins import ApiAuthMixin
 from user.models import BaseUser
-from .selectors import blog_list, blog_get, comment_list
+from .selectors import blog_list, blog_get, comment_list, comment_get
 from api.pagination import (
     LimitOffsetPagination,
     get_paginated_response,
 )
 from .models import Blog
-from .services import blog_create, blog_update, comment_create, blog_like, blog_delete
+from .services import blog_create, blog_update, comment_create, blog_like, blog_delete, comment_delete
 
 
 
@@ -168,3 +168,11 @@ class CommentListApi(APIView):
         )
 
 
+class CommentDeleteApi(ApiAuthMixin, APIView):
+    def post(self, request, comment_id):
+        comment = comment_get(comment_id)
+        if request.user == comment.user:
+            comment_delete(comment)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+    
