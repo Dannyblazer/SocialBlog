@@ -71,12 +71,16 @@ class BaseUser(BaseModel, AbstractBaseUser, PermissionsMixin):
 
 class Profile(models.Model):
     """ User Profile Class hooked to the User model """
-    user = models.OneToOneField(BaseUser, on_delete=models.CASCADE)
-    image = models.ImageField(
-        default=default_image,
-        upload_to=upload_location,
-        null=True, blank=True) # Remember to remove the null after default image is set
-    bio = models.TextField(max_length=500, blank=True)
+    user    = models.OneToOneField(BaseUser, on_delete=models.CASCADE)
+    image   = models.ImageField(
+                default=default_image,
+                upload_to=upload_location,
+                null=True, blank=True) # Remember to remove the null after default image is set
+    
+    bio     = models.TextField(max_length=500, blank=True)
     location = models.CharField(max_length=30, blank=True)
     birth_date = models.DateField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return super().__str__()
 
