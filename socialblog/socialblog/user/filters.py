@@ -1,6 +1,6 @@
 import django_filters
 
-from styleguide_example.users.models import BaseUser
+from user.models import BaseUser
 
 
 class BaseUserFilter(django_filters.FilterSet):
