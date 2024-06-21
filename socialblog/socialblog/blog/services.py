@@ -29,7 +29,7 @@ def blog_update(*, blog: Blog, data) -> Blog:
 
 
 def blog_delete(blog):
-    return blog.delete()
+    blog.delete()
 
 
 def comment_create(
@@ -47,3 +47,6 @@ def blog_like(user: BaseUser, blog: Blog) -> bool:
         like.save()
         return True
     return False
+
+def comment_delete(comment):
+    comment.delete()
