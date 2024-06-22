@@ -42,12 +42,12 @@ class BlogUpdateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         title = serializers.CharField(max_length=50)
         body = serializers.CharField()
-        like = serializers.IntegerField(required=False, allow_null=True)
+        
 
     class OutputSerializer(serializers.ModelSerializer):
         class Meta:
             model = Blog
-            fields = ("id", "author", "title", "body", "like")
+            fields = ("id", "author", "title", "body")
     
     def patch(self, request, blog_id):
         input_serializer = self.InputSerializer(data=request.data)
@@ -84,11 +84,14 @@ class BlogListApi(ApiAuthMixin, APIView):
             queryset = BaseUser.objects.all()
         )
         title = serializers.CharField()
-        body = serializers.CharField()
-        like = serializers.IntegerField()
+        body = serializers.CharField()                          # REMEMBER TO ADD LIKE AND COMMENTS COUNT
+        #likes = serializers.SerializerMethodField()
         created_at = serializers.DateTimeField()
         updated_at = serializers.DateTimeField()
 
+        """def get_likes(self, obj):
+
+            return obj.like.count()"""
 
     def get(self, request):
         input_serializer = self.InputSerializer(data=request.query_params)
@@ -106,7 +109,7 @@ class BlogListApi(ApiAuthMixin, APIView):
 
 
 class BlogDeleteApi(ApiAuthMixin, APIView):
-    def post(self, request, blog_id):
+    def delete(self, request, blog_id):
         blog = blog_get(blog_id)
         if request.user == blog.author:
             blog_delete(blog)
@@ -149,6 +152,7 @@ class CommentListApi(APIView):
         default_limit = 3
 
     class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
         owner = serializers.SlugRelatedField(
             slug_field='email',
             queryset=BaseUser.objects.all()
@@ -169,9 +173,9 @@ class CommentListApi(APIView):
 
 
 class CommentDeleteApi(ApiAuthMixin, APIView):
-    def post(self, request, comment_id):
+    def delete(self, request, comment_id):
         comment = comment_get(comment_id)
-        if request.user == comment.user:
+        if request.user == comment.owner:
             comment_delete(comment)
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_401_UNAUTHORIZED)
