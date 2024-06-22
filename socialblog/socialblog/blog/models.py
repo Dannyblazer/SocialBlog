@@ -26,7 +26,7 @@ class Comment(BaseModel):
     
 
 class Like(BaseModel):
-    blog = models.OneToOneField(Blog, on_delete=models.CASCADE, related_name='like')
+    blog = models.OneToOneField(Blog, on_delete=models.CASCADE, related_name='likes')
     users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_blogs')
 
     def __str__(self):
