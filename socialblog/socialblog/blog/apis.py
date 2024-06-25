@@ -3,6 +3,7 @@ from tokenize import Comment
 from rest_framework.views import APIView
 from rest_framework import serializers, status
 from rest_framework.response import Response
+from django.db.models import Count
 
 from api.mixins import ApiAuthMixin
 from user.models import BaseUser
@@ -81,28 +82,36 @@ class BlogListApi(ApiAuthMixin, APIView):
         id = serializers.IntegerField()
         author = serializers.SlugRelatedField(
             slug_field='email',
-            queryset = BaseUser.objects.all()
+            queryset=BaseUser.objects.all()
         )
         title = serializers.CharField()
-        body = serializers.CharField()                          # REMEMBER TO ADD LIKE AND COMMENTS COUNT
-        likes = serializers.SerializerMethodField()
+        body = serializers.CharField()
+        likes = serializers.IntegerField()
         created_at = serializers.DateTimeField()
         updated_at = serializers.DateTimeField()
-
-        def get_likes(self, obj):
-
-            return obj.likes.users.count() if obj.likes else 0
-
 
     def get(self, request):
         input_serializer = self.InputSerializer(data=request.query_params)
         input_serializer.is_valid(raise_exception=True)
 
-        blogs = blog_list(filters=input_serializer.validated_data)
+        blogs = blog_list(filters=input_serializer.validated_data).annotate(likes_count=Count('likes__users'))
+
+        # Update OutputSerializer to expect the annotated likes_count
+        class OutputSerializer(serializers.Serializer):
+            id = serializers.IntegerField()
+            author = serializers.SlugRelatedField(
+                slug_field='email',
+                queryset=BaseUser.objects.all()
+            )
+            title = serializers.CharField()
+            body = serializers.CharField()
+            likes = serializers.IntegerField(source='likes_count')
+            created_at = serializers.DateTimeField()
+            updated_at = serializers.DateTimeField()
 
         return get_paginated_response(
             pagination_class=self.Pagination,
-            serializer_class=self.OutputSerializer,
+            serializer_class=OutputSerializer,
             queryset=blogs,
             request=request,
             view=self,
