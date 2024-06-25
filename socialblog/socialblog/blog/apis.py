@@ -85,13 +85,14 @@ class BlogListApi(ApiAuthMixin, APIView):
         )
         title = serializers.CharField()
         body = serializers.CharField()                          # REMEMBER TO ADD LIKE AND COMMENTS COUNT
-        #likes = serializers.SerializerMethodField()
+        likes = serializers.SerializerMethodField()
         created_at = serializers.DateTimeField()
         updated_at = serializers.DateTimeField()
 
-        """def get_likes(self, obj):
+        def get_likes(self, obj):
 
-            return obj.like.count()"""
+            return obj.likes.users.count() if obj.likes else 0
+
 
     def get(self, request):
         input_serializer = self.InputSerializer(data=request.query_params)
