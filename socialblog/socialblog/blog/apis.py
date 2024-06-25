@@ -86,7 +86,7 @@ class BlogListApi(ApiAuthMixin, APIView):
         )
         title = serializers.CharField()
         body = serializers.CharField()
-        likes = serializers.IntegerField()
+        likes = serializers.IntegerField(source='likes_count')
         created_at = serializers.DateTimeField()
         updated_at = serializers.DateTimeField()
 
@@ -96,22 +96,9 @@ class BlogListApi(ApiAuthMixin, APIView):
 
         blogs = blog_list(filters=input_serializer.validated_data).annotate(likes_count=Count('likes__users'))
 
-        # Update OutputSerializer to expect the annotated likes_count
-        class OutputSerializer(serializers.Serializer):
-            id = serializers.IntegerField()
-            author = serializers.SlugRelatedField(
-                slug_field='email',
-                queryset=BaseUser.objects.all()
-            )
-            title = serializers.CharField()
-            body = serializers.CharField()
-            likes = serializers.IntegerField(source='likes_count')
-            created_at = serializers.DateTimeField()
-            updated_at = serializers.DateTimeField()
-
         return get_paginated_response(
             pagination_class=self.Pagination,
-            serializer_class=OutputSerializer,
+            serializer_class=self.OutputSerializer,
             queryset=blogs,
             request=request,
             view=self,
