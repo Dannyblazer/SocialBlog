@@ -7,16 +7,16 @@ from user.models import BaseUser
 
 
 def user_create(
-    *, email: str, is_active: bool = True, is_admin: bool = False, password: Optional[str] = None
+    *, email: str, username: str, is_active: bool = True, is_admin: bool = False, password: Optional[str] = None
 ) -> BaseUser:
-    user = BaseUser.objects.create_user(email=email, is_active=is_active, is_admin=is_admin, password=password)
+    user = BaseUser.objects.create_user(email=email, username=username, is_active=is_active, is_admin=is_admin, password=password)
 
     return user
 
 
 @transaction.atomic
 def user_update(*, user: BaseUser, data) -> BaseUser:
-    non_side_effect_fields = ["email", "last_name"]
+    non_side_effect_fields = ["email", "username"]
 
     user, has_updated = model_update(instance=user, fields=non_side_effect_fields, data=data)
 
