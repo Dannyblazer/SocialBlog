@@ -13,16 +13,17 @@ from user.selectors import user_list
 from user.services import user_create, user_update
 
 
-#TODO: When JWT is resolved, add authenticated version
 
 class UserCreateApi(APIView):
     class InputSerializer(serializers.Serializer):
         email = serializers.EmailField()
+        username = serializers.CharField()
         password = serializers.CharField(write_only=True)
 
     class OutputSerializer(serializers.Serializer):
         id = serializers.IntegerField()
         email = serializers.EmailField()
+        username = serializers.CharField()
         is_admin = serializers.BooleanField()
 
     def post(self, request):
@@ -30,6 +31,7 @@ class UserCreateApi(APIView):
         input_serializer.is_valid(raise_exception=True)
         user = user_create(
                 email=input_serializer.validated_data['email'],
+                username=input_serializer.validated_data['username'],
                 password=input_serializer.validated_data['password']
             )
         output_serializer = self.OutputSerializer(user)
@@ -41,10 +43,12 @@ class UserCreateApi(APIView):
 class UserUpdateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         email = serializers.EmailField()
+        username = serializers.CharField()
 
     class OutputSerializer(serializers.Serializer):
         id = serializers.IntegerField()
         email = serializers.EmailField()
+        username = serializers.CharField()
 
     def patch(self, request):
         # Get authentication fixed
@@ -66,11 +70,12 @@ class UserListApi(ApiAuthMixin, APIView):
         id = serializers.IntegerField(required=False)
         is_admin = serializers.BooleanField(required=False, allow_null=True, default=None)
         email = serializers.EmailField(required=False)
+        username = serializers.CharField(required=False)
 
     class OutputSerializer(serializers.ModelSerializer):
         class Meta:
             model = BaseUser
-            fields = ("id", "email", "is_admin")
+            fields = ("id", "email", "username", "is_admin")
 
     def get(self, request):
         # Make sure the filters are valid, if passed
