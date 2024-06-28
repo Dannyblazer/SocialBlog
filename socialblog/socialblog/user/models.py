@@ -9,13 +9,14 @@ from common.utils import upload_location, default_image
 
 # The BaseUserManager
 class BaseUserManager(BUM):
-    # The create user method on the for the BaseUserManager
-    def create_user(self, email, is_active=True, is_admin=False, password=None):
+    """ The create user method on the for the BaseUserManager """
+    def create_user(self, email, username, is_active=True, is_admin=False, password=None):
         if not email:
             raise ValueError("Users must have an email address")
         
         user = self.model(
             email=self.normalize_email(email.lower()),
+            username=username,
             is_active=is_active,
             is_admin=is_admin,
         )
@@ -30,9 +31,10 @@ class BaseUserManager(BUM):
         
         return user
     
-    def create_superuser(self, email, password=None):
+    def create_superuser(self, email, username, password=None):
         user = self.create_user(
             email=email,
+            username=username,
             is_active=True,
             is_admin=True,
             password=password,
@@ -48,7 +50,12 @@ class BaseUser(BaseModel, AbstractBaseUser, PermissionsMixin):
     """ The Base User inheriting Other classes to form the complete user model """
     email = models.EmailField(
         verbose_name="email address",
-        max_length=255,
+        max_length=100,
+        unique=True,
+    )
+    username = models.CharField(
+        verbose_name="username",
+        max_length=100,
         unique=True,
     )
 
@@ -62,7 +69,7 @@ class BaseUser(BaseModel, AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
 
     def __str__(self):
-        return f"{self.email}"
+        return f"{self.username}"
     
     # staff boolean method
     def is_staff(self):
@@ -82,5 +89,5 @@ class Profile(models.Model):
     birth_date = models.DateField(null=True, blank=True)
 
     def __str__(self) -> str:
-        return super().__str__()
+        return str(self.user)
 
