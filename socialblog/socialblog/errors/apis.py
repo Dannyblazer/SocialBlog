@@ -33,3 +33,4 @@ class TriggerUnhandledExceptionApi(APIView):
         raise Exception("Oops")
 
         return Response()
+
