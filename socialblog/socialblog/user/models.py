@@ -5,20 +5,18 @@ from django.db import models
 
 from common.models import BaseModel
 from common.utils import upload_location, default_image
-# Create your models here.
 
-# The BaseUserManager
+
 class BaseUserManager(BUM):
-    """ The create user method on the for the BaseUserManager """
-    def create_user(self, email, username, is_active=True, is_admin=False, password=None):
+    def create_user(self, email, username, password=None):
         if not email:
             raise ValueError("Users must have an email address")
+        if not username:
+            raise ValueError("Users must have an username")
         
         user = self.model(
             email=self.normalize_email(email.lower()),
             username=username,
-            is_active=is_active,
-            is_admin=is_admin,
         )
 
         if password is not None:
@@ -35,19 +33,16 @@ class BaseUserManager(BUM):
         user = self.create_user(
             email=email,
             username=username,
-            is_active=True,
-            is_admin=True,
             password=password,
         )
 
         user.is_superuser = True
+        user.is_admin=True
         user.save(using=self._db)
 
         return user
-    
 
 class BaseUser(BaseModel, AbstractBaseUser, PermissionsMixin):
-    """ The Base User inheriting Other classes to form the complete user model """
     email = models.EmailField(
         verbose_name="email address",
         max_length=100,
@@ -55,39 +50,55 @@ class BaseUser(BaseModel, AbstractBaseUser, PermissionsMixin):
     )
     username = models.CharField(
         verbose_name="username",
-        max_length=100,
+        max_length=50,
         unique=True,
     )
 
     is_active=models.BooleanField(default=True)
     is_admin=models.BooleanField(default=False)
 
-    # This should potentially be an encrypted field
     jwt_key = models.UUIDField(default=uuid.uuid4)
 
     objects = BaseUserManager()
     USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ['username',]
 
     def __str__(self):
         return f"{self.username}"
     
-    # staff boolean method
     def is_staff(self):
         return self.is_admin
     
 
+
+class Follow(models.Model):
+    class STATUS(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        ACCEPTED = "ACCEPTED", "Accepted"
+        DECLINED = "DECLINED", "Declined"
+
+    follower = models.ForeignKey(BaseUser, on_delete=models.CASCADE, related_name='following_set')
+    followed = models.ForeignKey(BaseUser, on_delete=models.CASCADE, related_name='followers_set')
+    status = models.CharField(max_length=10, choices=STATUS.choices, default=STATUS.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('follower', 'followed')
+
+    def __str__(self):
+        return f"{self.follower} follows {self.followed}"
+
+
 class Profile(models.Model):
-    """ User Profile Class hooked to the User model """
-    user    = models.OneToOneField(BaseUser, on_delete=models.CASCADE)
-    image   = models.ImageField(
-                default=default_image,
-                upload_to=upload_location,
-                null=True, blank=True) # Remember to remove the null after default image is set
-    
-    bio     = models.TextField(max_length=500, blank=True)
+    user = models.OneToOneField(BaseUser, on_delete=models.CASCADE)
+    image = models.ImageField(
+        default=default_image,
+        upload_to=upload_location,
+        null=True, blank=True
+    )
+    bio = models.TextField(max_length=500, blank=True)
     location = models.CharField(max_length=30, blank=True)
     birth_date = models.DateField(null=True, blank=True)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return str(self.user)
-
