@@ -6,6 +6,7 @@ from django.db import transaction
 from django.db.models.query import QuerySet
 from django.utils import timezone
 
+from config.env import env
 from common.services import model_update
 from core.exceptions import ApplicationError
 from emails.models import Email
@@ -33,7 +34,7 @@ def email_send(email: Email) -> Email:
             raise ApplicationError("Email sending failure triggered.")
 
     subject = email.subject
-    from_email = "styleguide-example@hacksoft.io"
+    from_email = env.str("GOOGLE_EMAIL_HOST_USER")
     to = email.to
 
     html = email.html
@@ -64,3 +65,4 @@ def email_send_all(emails: QuerySet[Email]):
 
         # Create a closure, to capture the proper value of each id
         transaction.on_commit((lambda email_id: lambda: email_send_task.delay(email_id))(email.id))
+
