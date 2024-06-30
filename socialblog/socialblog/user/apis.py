@@ -36,7 +36,7 @@ class UserCreateApi(APIView):
             )
         output_serializer = self.OutputSerializer(user)
 
-        return Response({"detail": output_serializer.data}, status=status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_201_CREATED)
 
 
 
