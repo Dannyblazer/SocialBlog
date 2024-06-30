@@ -42,8 +42,7 @@ class BlogUpdateApi(ApiAuthMixin, APIView):
 
     class InputSerializer(serializers.Serializer):
         title = serializers.CharField(max_length=50)
-        body = serializers.CharField()
-        
+        body = serializers.CharField()   
 
     class OutputSerializer(serializers.ModelSerializer):
         class Meta:
@@ -106,6 +105,7 @@ class BlogListApi(ApiAuthMixin, APIView):
         )
 
 
+
 class BlogDeleteApi(ApiAuthMixin, APIView):
     def delete(self, request, blog_id):
         blog = blog_get(blog_id)
@@ -126,6 +126,7 @@ class BlogLikeApi(ApiAuthMixin, APIView):
         return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
+
 class CommentCreateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
         body = serializers.CharField()
@@ -144,6 +145,7 @@ class CommentCreateApi(ApiAuthMixin, APIView):
 
         return Response(status=status.HTTP_201_CREATED)
     
+
 
 class CommentListApi(APIView):
     class Pagination(LimitOffsetPagination):
@@ -168,6 +170,7 @@ class CommentListApi(APIView):
             request=request,
             view=self,
         )
+
 
 
 class CommentDeleteApi(ApiAuthMixin, APIView):
