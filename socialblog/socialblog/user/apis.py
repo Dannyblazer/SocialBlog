@@ -91,3 +91,24 @@ class UserListApi(ApiAuthMixin, APIView):
             request=request,
             view=self,
         )
+
+
+
+class UserFollowerListApi(ApiAuthMixin, APIView):
+    class Pagination(LimitOffsetPagination):
+        default_limit = 5
+
+    class InputSerializer(serializers.Serializer):
+        username = serializers.CharField(max_length=50)
+
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+        username = serializers.CharField()
+
+    def get(self, request):
+        inputserializer = self.InputSerializer(data=request.query_params)
+        inputserializer.is_valid(raise_exception=True)
+
+        followers = 
+        
+
