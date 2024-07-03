@@ -10,7 +10,7 @@ def blog_list(*, filters=None) -> QuerySet[Blog]:
     return BlogFilter(filters, qs).qs
 
 
-def blog_get(blog_id):
+def blog_get(blog_id) -> Blog:
     return get_object_or_404(Blog, pk=blog_id)
 
 
@@ -19,6 +19,6 @@ def comment_list(blog_id: int) -> QuerySet[Blog]:
     return qs.comments.all()
 
 
-def comment_get(comment_id):
+def comment_get(comment_id) -> Comment:
     return get_object_or_404(Comment, pk=comment_id)
 
