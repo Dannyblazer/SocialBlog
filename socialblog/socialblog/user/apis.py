@@ -8,8 +8,8 @@ from api.pagination import (
     LimitOffsetPagination,
     get_paginated_response,
 )
-from user.models import BaseUser
-from user.selectors import user_list
+from user.models import BaseUser, Follow
+from user.selectors import user_list, user_get, get_followers, get_following, is_following, follow_user, unfollow_user
 from user.services import user_create, user_update
 
 
@@ -94,21 +94,81 @@ class UserListApi(ApiAuthMixin, APIView):
 
 
 
+class UserFollowApi(ApiAuthMixin, APIView):
+
+    def post(self, request, user_id):
+        followed = user_get(user_id)
+        follower = request.user
+
+        following = follow_user(follower, followed)
+        return Response(status=status.HTTP_202_ACCEPTED if following else status.HTTP_409_CONFLICT)
+
+
+
+class UserUnFollowApi(ApiAuthMixin, APIView):
+
+    def post(self, request, user_id):
+        followed = user_get(user_id)
+        follower = request.user
+
+        following = unfollow_user(follower, followed)
+        return Response(status=status.HTTP_202_ACCEPTED if following else status.HTTP_404_NOT_FOUND)
+
+
+
 class UserFollowerListApi(ApiAuthMixin, APIView):
     class Pagination(LimitOffsetPagination):
         default_limit = 5
 
     class InputSerializer(serializers.Serializer):
-        username = serializers.CharField(max_length=50)
+        username = serializers.SlugRelatedField(
+            slug_field='username',
+            queryset=BaseUser.objects.all()
+        )
 
     class OutputSerializer(serializers.Serializer):
         id = serializers.IntegerField()
-        username = serializers.CharField()
+        follower = serializers.SlugRelatedField(
+            slug_field='username',
+            queryset=Follow.objects.all()
+        )
 
     def get(self, request):
         inputserializer = self.InputSerializer(data=request.query_params)
         inputserializer.is_valid(raise_exception=True)
 
-        followers = 
+        followers = get_followers(user=inputserializer.validated_data['username'])
+
+        return get_paginated_response(
+            pagination_class=self.Pagination,
+            serializer_class=self.OutputSerializer,
+            queryset=followers,
+            request=request,
+            view=self,
+        )
         
 
+
+class UserFollowingListApi(ApiAuthMixin, APIView):
+    class Pagination(LimitOffsetPagination):
+        default_limit = 5
+
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+        followed = serializers.CharField()
+
+    def get(self, request, user_id=None):
+        if user_id is None:
+            raise ValidationError({"user_id": "This field is required."})
+        user = user_get(user_id)
+
+        followers = get_following(user=user)
+
+        return get_paginated_response(
+            pagination_class=self.Pagination,
+            serializer_class=self.OutputSerializer,
+            queryset=followers,
+            request=request,
+            view=self,
+        )
+       
