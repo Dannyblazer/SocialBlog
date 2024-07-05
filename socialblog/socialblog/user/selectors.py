@@ -20,9 +20,7 @@ def user_get_login_data(*, user: BaseUser):
     }
 
 
-def user_get(sender, user_id) -> BaseUser:
-    if user_id is None:
-        return sender
+def user_get(user_id) -> BaseUser:
     return get_object_or_404(BaseUser, pk=user_id)
 
 
@@ -38,14 +36,18 @@ def user_list(*, filters=None) -> QuerySet[BaseUser]:
 def get_following(user) -> QuerySet[Follow]:
     return Follow.objects.filter(follower=user, status=Follow.STATUS.PENDING).select_related('followed')
 
+
 def get_followers(user) -> QuerySet[Follow]:
     return Follow.objects.filter(followed=user, status=Follow.STATUS.PENDING).select_related('follower')
+
 
 def get_pending_follow_requests(user) -> QuerySet[Follow]:
     return Follow.objects.filter(followed=user, status=Follow.STATUS.PENDING).select_related('follower')
 
+
 def is_following(user, other_user) -> bool:
     return Follow.objects.filter(follower=user, followed=other_user).exists()
+
 
 def follow_user(follower, followed):
     if not is_following(follower, followed):
@@ -53,11 +55,13 @@ def follow_user(follower, followed):
         return True
     return False
 
+
 def unfollow_user(follower, followed):
     if is_following(follower, followed):
         Follow.objects.filter(follower=follower, followed=followed).delete()
         return True
     return False
+
 
 def accept_follow_request(followed, follower):
     follow_request = Follow.objects.filter(follower=follower, followed=followed, status=Follow.STATUS.PENDING).first()
@@ -65,6 +69,8 @@ def accept_follow_request(followed, follower):
         follow_request.status = Follow.STATUS.ACCEPTED
         follow_request.save()
 
+
 def decline_follow_request(followed, follower):
     Follow.objects.filter(follower=follower, followed=followed, status=Follow.STATUS.PENDING).delete()
+
 
