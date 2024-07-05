@@ -9,7 +9,8 @@ from api.pagination import (
     get_paginated_response,
 )
 from user.models import BaseUser, Follow
-from user.selectors import user_list, user_get, get_followers, get_following, is_following, follow_user, unfollow_user
+from user.selectors import (user_list, user_get, get_followers,
+                            get_following, follow_user, unfollow_user, get_pending_follow_requests)
 from user.services import user_create, user_update
 
 
@@ -34,7 +35,7 @@ class UserCreateApi(APIView):
                 username=input_serializer.validated_data['username'],
                 password=input_serializer.validated_data['password']
             )
-        output_serializer = self.OutputSerializer(user)
+        #output_serializer = self.OutputSerializer(user)
 
         return Response(status=status.HTTP_201_CREATED)
 
@@ -157,9 +158,7 @@ class UserFollowingListApi(ApiAuthMixin, APIView):
         id = serializers.IntegerField()
         followed = serializers.CharField()
 
-    def get(self, request, user_id=None):
-        if user_id is None:
-            raise ValidationError({"user_id": "This field is required."})
+    def get(self, request, user_id):
         user = user_get(user_id)
 
         followers = get_following(user=user)
@@ -172,3 +171,27 @@ class UserFollowingListApi(ApiAuthMixin, APIView):
             view=self,
         )
        
+
+
+class UserFollowRequestListApi(ApiAuthMixin, APIView):
+    class Pagination(LimitOffsetPagination):
+        default_limit = 5
+
+    class OutputSerializer(serializers.Serializer):
+        id = serializers.IntegerField()
+        follower = serializers.CharField()
+        created_at = serializers.DateTimeField()
+
+
+    def get(self, request):
+        user = request.user
+        follow_requests = get_pending_follow_requests(user)
+
+        return get_paginated_response(
+            pagination_class=self.Pagination,
+            serializer_class=self.OutputSerializer,
+            queryset=follow_requests,
+            request=request,
+            view=self,
+        )
+    
