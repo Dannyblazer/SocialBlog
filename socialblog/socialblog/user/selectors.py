@@ -63,14 +63,16 @@ def unfollow_user(follower, followed):
     return False
 
 
-def accept_follow_request(followed, follower):
-    follow_request = Follow.objects.filter(follower=follower, followed=followed, status=Follow.STATUS.PENDING).first()
-    if follow_request:
+def accept_follow_request(request_id):
+    follow_request = get_object_or_404(Follow, pk=request_id)
+    if follow_request.status != Follow.STATUS.ACCEPTED:
         follow_request.status = Follow.STATUS.ACCEPTED
         follow_request.save()
+        return True
+    return False
 
 
-def decline_follow_request(followed, follower):
-    Follow.objects.filter(follower=follower, followed=followed, status=Follow.STATUS.PENDING).delete()
-
+def decline_follow_request(request_id):
+    follow_request = get_object_or_404(Follow, pk=request_id, status=Follow.STATUS.PENDING)
+    follow_request.delete()
 
