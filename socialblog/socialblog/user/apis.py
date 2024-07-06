@@ -10,7 +10,8 @@ from api.pagination import (
 )
 from user.models import BaseUser, Follow
 from user.selectors import (user_list, user_get, get_followers,
-                            get_following, follow_user, unfollow_user, get_pending_follow_requests)
+                            get_following, follow_user, unfollow_user,
+                            get_pending_follow_requests, accept_follow_request, decline_follow_request)
 from user.services import user_create, user_update
 
 
@@ -194,4 +195,15 @@ class UserFollowRequestListApi(ApiAuthMixin, APIView):
             request=request,
             view=self,
         )
+    
+
+class UserRequestAcceptApi(ApiAuthMixin, APIView):
+    def post(self, request, request_id):
+        request_status = accept_follow_request(request_id)
+        return Response(status=status.HTTP_202_ACCEPTED if request_status else status.HTTP_409_CONFLICT)
+
+class UserRequestDeclineApi(ApiAuthMixin, APIView):
+    def post(self, request, request_id):
+        decline_follow_request(request_id)
+        return Response(status=status.HTTP_202_ACCEPTED)
     
