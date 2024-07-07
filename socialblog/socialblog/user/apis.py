@@ -8,11 +8,11 @@ from api.pagination import (
     LimitOffsetPagination,
     get_paginated_response,
 )
-from user.models import BaseUser, Follow
+from user.models import BaseUser, Follow, Profile
 from user.selectors import (user_list, user_get, get_followers,
                             get_following, follow_user, unfollow_user,
                             get_pending_follow_requests, accept_follow_request, decline_follow_request)
-from user.services import user_create, user_update
+from user.services import user_create, user_update, profile_update
 
 
 
@@ -60,7 +60,7 @@ class UserUpdateApi(ApiAuthMixin, APIView):
 
         new_user = user_update(user=user, data=input_serializer.validated_data)
         output_serializer = self.OutputSerializer(new_user)
-        return Response({"detail" : output_serializer.data}, status=status.HTTP_200_OK) 
+        return Response({"data" : output_serializer.data}, status=status.HTTP_200_OK) 
 
 
 
@@ -93,6 +93,62 @@ class UserListApi(ApiAuthMixin, APIView):
             request=request,
             view=self,
         )
+
+
+
+class ProfileViewApi(ApiAuthMixin, APIView):
+    class OutputSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Profile
+            fields = ("id", "user", "image", "bio", "location", "birth_date")
+            
+        # modified representation to hide "birth_date" field from other users besides profile owner
+        def to_representation(self, instance):
+            representation = super().to_representation(instance)
+            request = self.context.get('request', None)
+            
+            if request and request.user != instance.user:
+                representation.pop('birth_date', None)
+            
+            return representation
+        
+    def get(self, request, user_id):
+        user = user_get(user_id)
+        profile = Profile.objects.get(user=user)
+
+        output_serializer = self.OutputSerializer(profile, context={'request': request})
+
+        return Response({"data":output_serializer.data}, status=status.HTTP_200_OK)
+
+
+
+class ProfileUpdateApi(ApiAuthMixin, APIView):
+    class InputSerializer(serializers.Serializer):
+        image = serializers.ImageField(required=False)
+        bio = serializers.CharField(required=False)
+        location = serializers.CharField(required=False)
+        birth_date = serializers.DateField(required=False)
+
+    class OutputSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Profile
+            fields = ("id", "user", "image", "bio", "location", "birth_date")
+    
+    def patch(self, request, user_id):
+        user = user_get(user_id)
+        
+        if user != request.user:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        
+        input_serializer = self.InputSerializer(data=request.data)
+        input_serializer.is_valid(raise_exception=True)
+
+        profile = Profile.objects.get(user=user)
+        new_profile = profile_update(profile=profile, data=input_serializer.validated_data)
+        output_serializer = self.OutputSerializer(new_profile)
+
+        return Response({"data": output_serializer.data}, status=status.HTTP_200_OK)
+        
 
 
 
@@ -207,3 +263,4 @@ class UserRequestDeclineApi(ApiAuthMixin, APIView):
         decline_follow_request(request_id)
         return Response(status=status.HTTP_202_ACCEPTED)
     
+
