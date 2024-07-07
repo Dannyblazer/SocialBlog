@@ -71,7 +71,7 @@ class BaseUser(BaseModel, AbstractBaseUser, PermissionsMixin):
     
 
 
-class Follow(models.Model):
+class Follow(BaseModel):
     class STATUS(models.TextChoices):
         PENDING = "PENDING", "Pending"
         ACCEPTED = "ACCEPTED", "Accepted"
@@ -80,7 +80,6 @@ class Follow(models.Model):
     follower = models.ForeignKey(BaseUser, on_delete=models.CASCADE, related_name='following_set')
     followed = models.ForeignKey(BaseUser, on_delete=models.CASCADE, related_name='followers_set')
     status = models.CharField(max_length=10, choices=STATUS.choices, default=STATUS.PENDING)
-    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('follower', 'followed')
@@ -89,7 +88,7 @@ class Follow(models.Model):
         return f"{self.follower} follows {self.followed}"
 
 
-class Profile(models.Model):
+class Profile(BaseModel):
     user = models.OneToOneField(BaseUser, on_delete=models.CASCADE)
     image = models.ImageField(
         default=default_image,
