@@ -116,7 +116,7 @@ LOCAL_APPS = [
     "tasks",
     "integrations",
     #"testing_examples",
-    "blog_examples"
+    #"blog_examples"
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
