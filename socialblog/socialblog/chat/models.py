@@ -7,7 +7,6 @@ from common.models import BaseModel
 
 class Room(BaseModel):
 # A Private chat between to users
-    id          = models.PositiveIntegerField()
     user1       = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user1')
     user2       = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='user2')
     is_active   		= models.BooleanField(default=True)
@@ -40,4 +39,8 @@ class Room(BaseModel):
     def group_name(self):
         """ Return the channels group name that sockets should subscribe to receive private chat messages (pair-wise) """
         
-        return f"PrivateChatRoom-{self.id}"
+        return f"PrivateChatRoom-{self.pk}"
+
+
+
+class ChatMessage(BaseModel):
