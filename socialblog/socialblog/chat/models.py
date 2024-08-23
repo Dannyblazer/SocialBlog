@@ -42,5 +42,18 @@ class Room(BaseModel):
         return f"PrivateChatRoom-{self.pk}"
 
 
+class ChatMessageManager(models.Manager):
+    def by_room(self, room):
+        qs = ChatMessage.objects.filter(room=room).order_by("-created_at")
+        return qs
+    
 
 class ChatMessage(BaseModel):
+    sender          = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    room            = models.ForeignKey(Room, on_delete=models.CASCADE)
+    content         = models.TextField(unique=False, blank=False)
+
+    objects = ChatMessageManager()
+
+    def __str__(self):
+        return self.content
