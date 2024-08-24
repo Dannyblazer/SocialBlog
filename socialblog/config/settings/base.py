@@ -107,6 +107,7 @@ LOCAL_APPS = [
     "authentication",
     "user",
     "core",
+    "chat",
     "files",
     "api",
     "blog",
