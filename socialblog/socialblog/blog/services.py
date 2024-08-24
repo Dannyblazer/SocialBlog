@@ -1,5 +1,5 @@
-from typing import Optional
-from xmlrpc.client import Boolean
+#from typing import Optional
+#from xmlrpc.client import Boolean
 from django.db import transaction
 
 from.models import Blog, Comment, Like
