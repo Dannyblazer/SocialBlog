@@ -1,6 +1,6 @@
 from common.services import model_update
-from users.models import BaseUser
-from chat.models import ChatRoom, ChatMessage, UnreadUnreadChatRoomMessages
+from user.models import BaseUser
+from chat.models import ChatRoom, ChatMessage
 
 
 
@@ -17,3 +17,4 @@ def message_create(
 ) -> ChatMessage:
 
     return ChatMessage.objects.create(sender=sender, room=room, content=content)
+
