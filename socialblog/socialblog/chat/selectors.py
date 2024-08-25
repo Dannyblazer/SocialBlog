@@ -12,17 +12,18 @@ def chat_message_list(*, filters=None) -> QuerySet[ChatMessage]:
     return ChatFilter(filters, qs).qs
 
 
-def chat_room_list(request) -> Dict:
-    user = request.user
+def chat_room_list(user) -> Dict:
     encoder = RoomEncoder(context={'user': user})
     serialized_data = encoder.to_representation()
     return serialized_data
 
 
 def get_or_return_room(user1, user2) -> ChatRoom:
-    chat, created = ChatRoom.objects.get_or_create(
-        Q(user1=user1, user2=user2) | Q(user1=user2, user2=user1),
-        defaults={'user1': user1, 'user2': user2}
-    )
+    try:
+        # Attempt to retrieve the chat room with either user1/user2 or user2/user1
+        chat = ChatRoom.objects.get(Q(user1=user1, user2=user2) | Q(user1=user2, user2=user1))
+    except ChatRoom.DoesNotExist:
+        # If the chat room doesn't exist, create it
+        chat = ChatRoom.objects.create(user1=user1, user2=user2)
     return chat
 
