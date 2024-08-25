@@ -28,15 +28,15 @@ class RoomEncoder(serializers.BaseSerializer):
                 friend = room.user1
 
             try:
-                message = ChatMessage.objects.filter(room=room).select_related('user').latest('timestamp') # Remember to prefetch here
+                message = ChatMessage.objects.filter(room=room).select_related('sender').latest('created_at') # Remember to prefetch here
             except ChatMessage.DoesNotExist:
                 message = ChatMessage(
-                    user=friend,
+                    sender=friend,
                     room=room,
-                    timestamp=timezone.now(),
+                    created_at=timezone.now(),
                     content="",
                 )
-            if message.user == user:
+            if message.sender == user:
 
                 room_data.append({
                     #'room_id': str(room.id),
@@ -44,10 +44,10 @@ class RoomEncoder(serializers.BaseSerializer):
                     'user': str(friend.username),
                     'first_name': str(friend.first_name),
                     'last_name': str(friend.last_name),
-                    'profile_image': str(friend.profile_image.ur),
+                    'profile_image': str(friend.profile.image.url),
                     'last_message': {
                         'room': str(message.room.id),
-                        'timestamp': message.timestamp.isoformat(),
+                        'timestamp': message.created_at.isoformat(),
                         'content': message.content,
                     }
                 })
@@ -55,13 +55,13 @@ class RoomEncoder(serializers.BaseSerializer):
                 room_data.append({
                     #'room_id': str(room.id),
                     'friend_id': str(friend.pk),
-                    'user': str(message.user.username),
-                    'first_name': str(message.user.first_name),
-                    'last_name': str(message.user.last_name),
-                    'profile_image': str(message.user.profile_image.url),
+                    'user': str(message.sender.username),
+                    'first_name': str(message.sender.first_name),
+                    'last_name': str(message.sender.last_name),
+                    'profile_image': str(message.sender.profile.image.url),
                     'last_message': {
                         'room': str(message.room.id),
-                        'timestamp': message.timestamp.isoformat(),
+                        'timestamp': message.created_at.isoformat(),
                         'content': message.content,
                     }
                 })
