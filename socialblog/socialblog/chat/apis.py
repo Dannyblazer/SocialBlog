@@ -10,13 +10,13 @@ from api.pagination import (
 )
 from .models import ChatRoom, ChatMessage, UnreadChatRoomMessages
 from user.selectors import user_get
-from .selectors import get_or_return_room
+from .selectors import get_or_return_room, chat_room_list
 from .services import *
 
 
-class CreateOrReturnRoom(ApiAuthMixin, APIView):
+class CreateOrReturnRoomApi(ApiAuthMixin, APIView):
     class OutputSerializer(serializers.Serializer):
-        room_id = serializers.IntegerField()
+        id = serializers.IntegerField()
 
     def post(self, request, user2_id):
         user1 = request.user
@@ -29,3 +29,10 @@ class CreateOrReturnRoom(ApiAuthMixin, APIView):
 
 
 # Create the Chat Room List & Decide wether to use sockets or normal api to query chat messages
+class GetChatListApi(ApiAuthMixin, APIView):
+    def get(self, request):
+        user = request.user
+
+        room_list = chat_room_list(user)
+        return Response({"data": room_list}, status=status.HTTP_202_ACCEPTED)
+    
