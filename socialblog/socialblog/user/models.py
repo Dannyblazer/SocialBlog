@@ -53,6 +53,18 @@ class BaseUser(BaseModel, AbstractBaseUser, PermissionsMixin):
         max_length=50,
         unique=True,
     )
+    first_name = models.CharField(
+        verbose_name="first_name",
+        max_length=50,
+        blank=True,
+        null=True
+        )
+    last_name = models.CharField(
+        verbose_name="last_name",
+        max_length=50,
+        blank=True,
+        null=True
+        )
 
     is_active=models.BooleanField(default=True)
     is_admin=models.BooleanField(default=False)
