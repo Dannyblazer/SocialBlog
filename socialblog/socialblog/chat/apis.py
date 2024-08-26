@@ -8,10 +8,8 @@ from api.pagination import (
     LimitOffsetPagination,
     get_paginated_response,
 )
-from .models import ChatRoom, ChatMessage, UnreadChatRoomMessages
 from user.selectors import user_get
 from .selectors import get_or_return_room, chat_room_list
-from .services import *
 
 
 class CreateOrReturnRoomApi(ApiAuthMixin, APIView):
