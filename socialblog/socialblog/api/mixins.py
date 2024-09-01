@@ -72,8 +72,8 @@ else:
 
 class ApiAuthMixin:
     authentication_classes: Sequence[Type[BaseAuthentication]] = [
-        CsrfExemptedSessionAuthentication,
-        SessionAsHeaderAuthentication,
+        #CsrfExemptedSessionAuthentication,
+        #SessionAsHeaderAuthentication,
         JSONWebTokenAuthentication,
     ]
     permission_classes: PermissionClassesType = (IsAuthenticated,)
