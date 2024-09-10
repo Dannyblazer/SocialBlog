@@ -4,10 +4,10 @@ from rest_framework.views import APIView
 from api.mixins import ApiAuthMixin
 
 
-from api.pagination import (
+"""from api.pagination import (
     LimitOffsetPagination,
     get_paginated_response,
-)
+)"""
 from user.selectors import user_get
 from .selectors import get_or_return_room, chat_room_list
 
@@ -19,6 +19,8 @@ class CreateOrReturnRoomApi(ApiAuthMixin, APIView):
     def post(self, request, user2_id):
         user1 = request.user
         user2 = user_get(user2_id)
+        if user1 == user2:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         room = get_or_return_room(user1, user2)
 
         output = self.OutputSerializer(room)
