@@ -101,11 +101,11 @@ THIRD_PARTY_APPS = [
     "rest_framework.authtoken",
     "corsheaders",
     "drf_spectacular",
+    "rest_framework_simplejwt",
     "webpack_loader",
 ]
 
 LOCAL_APPS = [
-    "authentication",
     "user",
     "core",
     "chat",
