@@ -10,6 +10,8 @@ def user_create(
     *, email: str, username: str, password: Optional[str] = None
 ) -> BaseUser:
     user = BaseUser.objects.create_user(email=email, username=username, password=password)
+    
+    Profile.objects.create(user=user) # REMEMBER TO CELERIZE THIS!
 
     return user
 
