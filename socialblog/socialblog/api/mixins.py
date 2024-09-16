@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib import auth
 from rest_framework.authentication import BaseAuthentication, SessionAuthentication
 from rest_framework.permissions import BasePermission, IsAuthenticated
-from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+#from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
