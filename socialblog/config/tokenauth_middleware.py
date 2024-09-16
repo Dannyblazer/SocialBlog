@@ -21,11 +21,16 @@ class JWTAuthMiddleware(BaseMiddleware):
         # Authenticate the user using the JWT token
         scope["user"] = await self.get_user(token)
 
+        # If user is not authenticated, close the connection calmly
+        if scope["user"] is None or isinstance(scope["user"], AnonymousUser):
+            await self.close_connection(send)
+            return
+
+        # Proceed with the connection if the user is authenticated
         return await super().__call__(scope, receive, send)
 
     @database_sync_to_async
     def get_user(self, token):
-
         try:
             # Decode the JWT token to get the user ID
             access_token = AccessToken(token)
@@ -33,3 +38,13 @@ class JWTAuthMiddleware(BaseMiddleware):
             return User.objects.get(id=user_id)
         except Exception:
             return None
+
+    async def close_connection(self, send):
+        """
+        Gracefully close the WebSocket connection without raising an exception.
+        """
+        # Send a close message to the client, indicating the connection should close.
+        await send({
+            "type": "websocket.close",
+            "code": 403,  # Use 403 for forbidden access due to failed authentication
+        })
