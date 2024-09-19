@@ -1,11 +1,16 @@
+import asyncio
 import json
+import traceback
 from django.conf import settings
 from django.utils import timezone
-from django.db.models import Prefetch
-from django.core.paginator import Paginator
+#from django.db.models import Prefetch
+#from django.core.paginator import Paginator
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
-from channels.db import database_sync_to_async
-from .models import ChatRoom, UnreadChatRoomMessages
+from .selectors import get_room_or_error, connected_users
+from .services import (create_room_chat_message, disconnect_user,
+                       connect_user, on_user_connected,
+                       append_unread_msg_if_not_connected)
+from .utils import calculate_timestamp
 
 
 
@@ -51,26 +56,100 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         except Exception as e:
             return e
         
-        #await connect_user
+        await connect_user(room, self.scope["user"])
 
-
-
-@database_sync_to_async
-def get_room_or_error(room_id, user):
-    """
-    Tries to fetch a room for the user, checking permissions along the way
-    """
-    try:
-        room = ChatRoom.objects.select_related('user1', 'user2').prefetch_related(
-            Prefetch('room', queryset=UnreadChatRoomMessages.objects.filter(user=user))
-        ).get(pk=room_id)
-    except ChatRoom.DoesNotExist:
-        print("Get room or error exception!")
-        raise Exception("Invalid Room.")
+        if not self.channel_layer:
+            print("Helpoo")
     
-    # Is this user allowed into this room?
-    if user != room.user1 and user != room.user2:
-        print("Not your chat bro!")
-        raise Exception("You do not have permission to join this room.")
-    
-    return room
+        self.room_id = room.id
+
+        await on_user_connected(room, self.scope["user"])
+
+        await self.channel_layer.group_add(
+            room.group_name,
+            self.channel_name
+        )
+        
+        await self.send_json({
+            "join": str(room.id)
+        })
+
+    async def leave_room(self, room_id):
+        print("ChatConsumer: leave_room")
+
+        room = await get_room_or_error(room_id, self.scope["user"])
+
+        await disconnect_user(room, self.scope["user"])
+
+        self.room_id = None
+        
+        await self.channel_layer.group_discard(
+            room.group_name,
+            self.channel_name
+        )
+
+    async def send_room(self, room_id, message):
+        print("Consumer: send_room")
+        if self.room_id != None:
+            if str(room_id) != str(self.room_id):
+                print("ClientError for send_room")
+        else:
+            print("ClientError room-id is none")
+        
+        room = await get_room_or_error(room_id, self.scope["user"])
+
+        # Create the message in the database
+        print(f"Here's the room: {message}")
+        msg = await create_room_chat_message(room, self.scope["user"], message)
+        # Send the message to the channel group
+        print(f"Here's the room: {msg.content}")
+
+        await self.channel_layer.group_send(
+            room.group_name,
+            {
+                "type": "chat_message",
+                "username": self.scope["user"].username,
+                "user_id": self.scope["user"].email,
+                "message": message,
+            }
+        )
+
+        try:
+            connected_user_s = await connected_users(room)
+        except Exception as e:
+            print(f"Connected: {e}")
+        
+        async def handle_async_tasks():
+            try:
+                await asyncio.gather(
+                    append_unread_msg_if_not_connected(room, room.user1, connected_user_s, message),
+                    append_unread_msg_if_not_connected(room, room.user2, connected_user_s, message)
+                )
+            except Exception as e:
+                traceback.print_exc()
+        await handle_async_tasks()
+
+    async def chat_message(self, event):
+        """ Called when someone messaged our chat"""
+        timestamp = calculate_timestamp(timezone.now())
+
+        await self.send_json({
+            "username": event["username"],
+            "user_id": event["user_id"],
+            "message": event["message"],
+            "natural_timestamp": timestamp,
+        })
+
+    async def send_messages_payload(self, messages, new_page_number):
+        # Send a payload of message(s) to client socket
+        print("Consumer: send messages payload")
+        await self.send_json({
+            "messages_payload": "messages_payload",
+            "messages": messages,
+            "new_page_number": new_page_number,
+        })
+
+             
+
+
+
