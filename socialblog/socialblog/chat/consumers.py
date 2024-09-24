@@ -1,4 +1,5 @@
 import asyncio
+from email.mime import base
 import json
 import traceback
 from django.conf import settings
@@ -6,11 +7,13 @@ from django.utils import timezone
 #from django.db.models import Prefetch
 #from django.core.paginator import Paginator
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
-from .selectors import get_room_or_error, connected_users
+from .selectors import (get_room_or_error, connected_users,
+                        get_room_chat_messages, get_user_info)
 from .services import (create_room_chat_message, disconnect_user,
                        connect_user, on_user_connected,
                        append_unread_msg_if_not_connected)
 from .utils import calculate_timestamp
+from .constants import BASE_URL
 
 
 
@@ -32,9 +35,35 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             elif command == "send":
                 if len(content['message'].lstrip()) != 0:
                     await self.send_room(content['room'], content['message'])
-            """elif command == "get_room_chat_messages":
+            elif command == "get_room_chat_messages":
                 room = await get_room_or_error(content['room'], self.scope['user'])
-                payload = await get_room_chat_messages(room, content['page_number'])""" 
+                payload = await get_room_chat_messages(room, content['page_number'])
+                if payload != None:
+                    payload = json.loads(payload)
+                    await self.send_messages_payload(payload['messages'], payload['new_page_number'])
+                else:
+                    raise Exception("Something went wrong retrieving the chat messages.")
+            elif command == "get_user_info":
+                room = await get_room_or_error(content['room_id'], self.scope['user'])
+                payload = await get_user_info(room, self.scope["user"])
+                if payload != None:
+                    payload = json.loads(payload)
+                    wanted_keys = ['pk', 'username', 'first_name', 'last_name', 'profile_image']
+                    # Extract 'fields' and retain only wanted key
+                    fields = payload['user_info']['fields']
+                    filtered_fields = {key: value for key, value in fields.items() if key in wanted_keys}
+                    # Update the 'fields' with filtered data
+                    payload['user_info']['fields'] = filtered_fields
+
+                    # fix the profile_image relative path issue
+                    if 'profile_image' in filtered_fields:
+                        base_url = BASE_URL
+                        image_path = filtered_fields['profile_image']
+                        full_image_url = f"{base_url}/{image_path}"
+                        payload['user_info']['fields']['profile_image'] = full_image_url
+                    await self.send_user_info_payload(payload)
+                else:
+                    raise Exception("Something went wrong retrieving the other user info")
         except Exception as e:
             pass
 
@@ -149,7 +178,13 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             "new_page_number": new_page_number,
         })
 
-             
+    async def send_user_info_payload(self, payload):
+        """
+        Send user info to frontend
+        """
 
+        await self.send_json({
+            "details": payload,
+        },)
 
 
