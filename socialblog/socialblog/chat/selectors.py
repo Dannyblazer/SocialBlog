@@ -1,11 +1,14 @@
+import json
 from ast import Dict
 from django.db.models import Q, Prefetch
 from django.db.models.query import QuerySet
 from channels.db import database_sync_to_async
-#from user.models import BaseUser
+from django.core.paginator import Paginator
+from .constants import DEFAULT_ROOM_CHAT_MESSAGE_PAGE_SIZE
 from .models import ChatMessage, ChatRoom, UnreadChatRoomMessages
 from .filters import ChatFilter, RoomEncoder
-
+from .utils import calculate_timestamp, LaxyRoomChatMessageEncoder
+from user.utils import LazyAccountEncoder
 
 
 def chat_message_list(*, filters=None) -> QuerySet[ChatMessage]:
@@ -57,4 +60,40 @@ def get_room_or_error(room_id, user):
 @database_sync_to_async
 def connected_users(room):
     return room.connected_users.all()
+
+@database_sync_to_async
+def get_room_chat_messages(room, page_number):
+    try:
+        qs = ChatMessage.objects.by_room(room)
+        p = Paginator(qs, DEFAULT_ROOM_CHAT_MESSAGE_PAGE_SIZE)
+
+        payload = {}
+        new_page_number = int(page_number)
+        if new_page_number <= p.num_pages:
+            new_page_number = new_page_number + 1
+            s = LaxyRoomChatMessageEncoder()
+            payload['messages'] = s.serialize(p.page)
+        else:
+            payload['messages'] = None
+        payload['new_page_number'] = new_page_number
+        payload['messages'] = payload['messages'][::-1]
+        return json.dumps(payload)
+    except Exception as e:
+        print("EXCEPTION last: " + str(e))
+    return None
+
+
+@database_sync_to_async
+def get_user_info(room, user):
+    try:
+        other_user = room.user1 if room.user1 != user else room.user2
+        s = LazyAccountEncoder()
+        final = s.serialize([other_user])[0]
+        payload = {'user_info': final}
+        return json.dumps(payload, indent=4, sort_keys=True, default=str)
+    
+    except Exception as e:
+        print("EXCEPTiON: " + str(e))
+        return None
+
 
