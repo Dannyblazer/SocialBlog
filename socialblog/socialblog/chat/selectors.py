@@ -72,7 +72,7 @@ def get_room_chat_messages(room, page_number):
         if new_page_number <= p.num_pages:
             new_page_number = new_page_number + 1
             s = LaxyRoomChatMessageEncoder()
-            payload['messages'] = s.serialize(p.page)
+            payload['messages'] = s.serialize(p.page(page_number).object_list)
         else:
             payload['messages'] = None
         payload['new_page_number'] = new_page_number
@@ -87,8 +87,10 @@ def get_room_chat_messages(room, page_number):
 def get_user_info(room, user):
     try:
         other_user = room.user1 if room.user1 != user else room.user2
+        #user_with_profile = User.objects.select_related('profile').get(id=user.id)
         s = LazyAccountEncoder()
         final = s.serialize([other_user])[0]
+        print(final)
         payload = {'user_info': final}
         return json.dumps(payload, indent=4, sort_keys=True, default=str)
     
