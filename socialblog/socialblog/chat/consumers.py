@@ -57,11 +57,13 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
                     # fix the profile_image relative path issue
                     if 'profile_image' in filtered_fields:
+                        print("Profile was in filtered fields")
                         base_url = BASE_URL
                         image_path = filtered_fields['profile_image']
                         full_image_url = f"{base_url}/{image_path}"
                         payload['user_info']['fields']['profile_image'] = full_image_url
-                    await self.send_user_info_payload(payload)
+                    await self.send_user_info_payload(payload['user_info']['fields'])
+                    print("Profile wasn't in filtered fields")
                 else:
                     raise Exception("Something went wrong retrieving the other user info")
         except Exception as e:
