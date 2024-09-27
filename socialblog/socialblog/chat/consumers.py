@@ -8,7 +8,7 @@ from django.utils import timezone
 #from django.core.paginator import Paginator
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from .selectors import (get_room_or_error, connected_users,
-                        get_room_chat_messages, get_user_info)
+                        get_room_chat_messages)
 from .services import (create_room_chat_message, disconnect_user,
                        connect_user, on_user_connected,
                        append_unread_msg_if_not_connected)
@@ -43,29 +43,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                     await self.send_messages_payload(payload['messages'], payload['new_page_number'])
                 else:
                     raise Exception("Something went wrong retrieving the chat messages.")
-            elif command == "get_user_info":
-                room = await get_room_or_error(content['room_id'], self.scope['user'])
-                payload = await get_user_info(room, self.scope["user"])
-                if payload != None:
-                    payload = json.loads(payload)
-                    wanted_keys = ['pk', 'username', 'first_name', 'last_name', 'profile_image']
-                    # Extract 'fields' and retain only wanted key
-                    fields = payload['user_info']['fields']
-                    filtered_fields = {key: value for key, value in fields.items() if key in wanted_keys}
-                    # Update the 'fields' with filtered data
-                    payload['user_info']['fields'] = filtered_fields
-
-                    # fix the profile_image relative path issue
-                    if 'profile_image' in filtered_fields:
-                        print("Profile was in filtered fields")
-                        base_url = BASE_URL
-                        image_path = filtered_fields['profile_image']
-                        full_image_url = f"{base_url}/{image_path}"
-                        payload['user_info']['fields']['profile_image'] = full_image_url
-                    await self.send_user_info_payload(payload['user_info']['fields'])
-                    print("Profile wasn't in filtered fields")
-                else:
-                    raise Exception("Something went wrong retrieving the other user info")
+        
         except Exception as e:
             pass
 
@@ -180,13 +158,5 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             "new_page_number": new_page_number,
         })
 
-    async def send_user_info_payload(self, payload):
-        """
-        Send user info to frontend
-        """
-
-        await self.send_json({
-            "details": payload,
-        },)
 
 
