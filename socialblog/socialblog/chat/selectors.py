@@ -83,19 +83,5 @@ def get_room_chat_messages(room, page_number):
     return None
 
 
-@database_sync_to_async
-def get_user_info(room, user):
-    try:
-        other_user = room.user1 if room.user1 != user else room.user2
-        #user_with_profile = User.objects.select_related('profile').get(id=user.id)
-        s = LazyAccountEncoder()
-        final = s.serialize([other_user])[0]
-        print(final)
-        payload = {'user_info': final}
-        return json.dumps(payload, indent=4, sort_keys=True, default=str)
-    
-    except Exception as e:
-        print("EXCEPTiON: " + str(e))
-        return None
 
 
