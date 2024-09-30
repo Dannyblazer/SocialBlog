@@ -13,10 +13,11 @@ from .services import (create_room_chat_message, disconnect_user,
                        connect_user, on_user_connected,
                        append_unread_msg_if_not_connected)
 from .utils import calculate_timestamp
+from .exception import apply_wrappers
 from .constants import BASE_URL
 
 
-
+#@apply_wrappers
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         print("ChatConusmer: connect: " + str(self.scope["user"].username))
