@@ -31,9 +31,9 @@ class LaxyRoomChatMessageEncoder(Serializer):
         #dump_object.update({"msg_type": MSG_TYPE_MESSAGE})
         dump_object.update({"msg_id": str(obj.id)})
         dump_object.update({"user_id": str(obj.sender.pk)})
-        dump_object.update({"username": str(obj.sender.username)})
+        #dump_object.update({"username": str(obj.sender.username)})
         dump_object.update({"message": str(obj.content)})
-        dump_object.update({"profile_image": f"{base_url}{str(obj.sender.profile.image.url)}"})
+        #dump_object.update({"profile_image": f"{base_url}{str(obj.sender.profile.image.url)}"})
         dump_object.update({"natural_timestamp": calculate_timestamp(obj.created_at)})
         return dump_object
 
