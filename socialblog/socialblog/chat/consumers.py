@@ -108,17 +108,15 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         room = await get_room_or_error(room_id, self.scope["user"])
 
         # Create the message in the database
-        print(f"Here's the room: {message}")
         msg = await create_room_chat_message(room, self.scope["user"], message)
-        # Send the message to the channel group
-        print(f"Here's the room: {msg.content}")
+
 
         await self.channel_layer.group_send(
             room.group_name,
             {
                 "type": "chat_message",
-                "username": self.scope["user"].username,
-                "user_id": self.scope["user"].email,
+                #"username": self.scope["user"].username,
+                "user_id": self.scope["user"].pk,
                 "message": message,
             }
         )
@@ -143,7 +141,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         timestamp = calculate_timestamp(timezone.now())
 
         await self.send_json({
-            "username": event["username"],
+            #"username": event["username"],
             "user_id": event["user_id"],
             "message": event["message"],
             "natural_timestamp": timestamp,
