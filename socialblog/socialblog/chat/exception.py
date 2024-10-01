@@ -10,7 +10,7 @@ def apply_wrappers(consumer_class):
     for method_name, method in list(consumer_class.__dict__.items()):
         if iscoroutinefunction(method):
             setattr(consumer_class, method_name, propagate_exceptions(method))
-
+    return consumer_class
 
 def propagate_exceptions(func):
     async def wrapper(*args, **kwargs):  # we're wrapping an async function
