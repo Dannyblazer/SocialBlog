@@ -17,7 +17,7 @@ from .exception import apply_wrappers
 from .constants import BASE_URL
 
 
-#@apply_wrappers
+@apply_wrappers
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         print("ChatConusmer: connect: " + str(self.scope["user"].username))
