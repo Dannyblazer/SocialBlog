@@ -45,7 +45,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                     raise Exception("Something went wrong retrieving the chat messages.")
         
         except Exception as e:
-            pass
+            return e
 
     
     async def disconnect(self, code):
