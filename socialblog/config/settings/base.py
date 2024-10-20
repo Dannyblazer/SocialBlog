@@ -131,7 +131,7 @@ LOCAL_APPS = [
     "errors",
     "tasks",
     "integrations",
-    #"testing_examples",
+    "notifications",
     #"blog_examples"
     # Your stuff: custom apps go here
 ]
