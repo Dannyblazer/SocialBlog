@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 from .models import BaseUser, Follow
 
 from user.filters import BaseUserFilter
-
+from django.db import transaction
 
 
 
@@ -30,7 +30,6 @@ def user_list(*, filters=None) -> QuerySet[BaseUser]:
     qs = BaseUser.objects.all()
 
     return BaseUserFilter(filters, qs).qs
-
 
 
 def get_following(user) -> QuerySet[Follow]:
@@ -64,15 +63,29 @@ def unfollow_user(follower, followed):
 
 
 def accept_follow_request(request_id):
+    """
+    Accept a follow request.
+    """
     follow_request = get_object_or_404(Follow, pk=request_id)
-    if follow_request.status != Follow.STATUS.ACCEPTED:
+    
+    if follow_request.status == Follow.STATUS.ACCEPTED:
+        return False  # Request is already accepted
+
+    with transaction.atomic():
         follow_request.status = Follow.STATUS.ACCEPTED
         follow_request.save()
-        return True
-    return False
+
+    return True
 
 
-def decline_follow_request(request_id):
+def decline_follow_request(request_id: int) -> bool:
+    """
+    Decline a follow request.
+    """
     follow_request = get_object_or_404(Follow, pk=request_id, status=Follow.STATUS.PENDING)
     follow_request.delete()
+    return True
+
+    # follow_request = get_object_or_404(Follow, pk=request_id, status=Follow.STATUS.PENDING)
+    # follow_request.delete()
 

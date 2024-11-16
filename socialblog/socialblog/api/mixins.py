@@ -7,6 +7,7 @@ from rest_framework.authentication import BaseAuthentication, SessionAuthenticat
 from rest_framework.permissions import BasePermission, IsAuthenticated
 #from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from socialblog.api.token_authentication import CookiesJWTAuthentication
 
 
 def get_auth_header(headers):
@@ -75,7 +76,8 @@ class ApiAuthMixin:
     authentication_classes: Sequence[Type[BaseAuthentication]] = [
         #CsrfExemptedSessionAuthentication,
         #SessionAsHeaderAuthentication,
-        JWTAuthentication,
+        # JWTAuthentication,
+        CookiesJWTAuthentication,
         #JSONWebTokenAuthentication,
     ]
     permission_classes: PermissionClassesType = (IsAuthenticated,)

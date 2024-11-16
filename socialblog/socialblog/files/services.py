@@ -91,7 +91,6 @@ class FileStandardUploadService:
 
         return file
 
-
 class FileDirectUploadService:
     """
     This also serves as an example of a service class,

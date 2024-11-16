@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework import serializers, status
 from rest_framework.response import Response
 from django.db.models import Count
-
+from django.http import Http404
 from api.mixins import ApiAuthMixin
 from user.models import BaseUser
 from .selectors import blog_list, blog_get, comment_list, comment_get
@@ -14,7 +14,6 @@ from api.pagination import (
 )
 from .models import Blog
 from .services import blog_create, blog_update, comment_create, blog_like, blog_delete, comment_delete
-
 
 
 class BlogCreateApi(ApiAuthMixin, APIView):
@@ -34,9 +33,7 @@ class BlogCreateApi(ApiAuthMixin, APIView):
                 body=input_serializer.validated_data['body']
                 )
 
-        return Response(status=status.HTTP_201_CREATED)
-
-
+        return Response({"created" : True},status=status.HTTP_201_CREATED)
 
 class BlogUpdateApi(ApiAuthMixin, APIView):
 
@@ -61,8 +58,6 @@ class BlogUpdateApi(ApiAuthMixin, APIView):
             # Remove the update response later
             return Response({"data": output.data}, status=status.HTTP_202_ACCEPTED)
         return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-
 
 class BlogListApi(ApiAuthMixin, APIView):
     class Pagination(LimitOffsetPagination):
@@ -104,17 +99,25 @@ class BlogListApi(ApiAuthMixin, APIView):
             view=self,
         )
 
-
-
 class BlogDeleteApi(ApiAuthMixin, APIView):
     def delete(self, request, blog_id):
         blog = blog_get(blog_id)
+
         if request.user == blog.author:
             blog_delete(blog)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-
+            return Response(
+                {
+                    "delete_status" : True,
+                    "message" : "Blog deleted successfully"
+                },
+                status=status.HTTP_204_NO_CONTENT)
+        
+        return Response(
+            {
+                "delete_status" : False,
+                "message" : "You are not authorized to delete this blog, You can only delete your own blogs"
+            },
+            status=status.HTTP_401_UNAUTHORIZED)
 
 class BlogLikeApi(ApiAuthMixin, APIView):
     def post(self, request, blog_id):
@@ -122,10 +125,21 @@ class BlogLikeApi(ApiAuthMixin, APIView):
         user = request.user
         likeable = blog_like(user, blog)
         if likeable:
-            return Response(status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
+            return Response(
+                {
+                    "liked" : True,
+                    "message" : "Blog liked successfully"
+                },
+                status=status.HTTP_200_OK
+                )
+        
+        return Response(
+            {
+                "liked" : False,
+                "message" : "You have already liked this blog"
+            },
+            status=status.HTTP_400_BAD_REQUEST
+            )
 
 class CommentCreateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
@@ -143,13 +157,17 @@ class CommentCreateApi(ApiAuthMixin, APIView):
         blog = blog_get(blog_id)
         comment_create(owner=request.user, post=blog, body=input_serializer.validated_data['body'])
 
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "created" : True,
+                "message" : "Comment created successfully"
+            },
+            status=status.HTTP_201_CREATED
+            )
     
-
-
 class CommentListApi(APIView):
     class Pagination(LimitOffsetPagination):
-        default_limit = 3
+        default_limit = 5
 
     class OutputSerializer(serializers.Serializer):
         id = serializers.IntegerField()
@@ -171,13 +189,33 @@ class CommentListApi(APIView):
             view=self,
         )
 
-
-
 class CommentDeleteApi(ApiAuthMixin, APIView):
     def delete(self, request, comment_id):
-        comment = comment_get(comment_id)
-        if request.user == comment.owner:
-            comment_delete(comment)
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            comment = comment_get(comment_id)
+            if request.user == comment.owner:
+                comment_delete(comment)
+                return Response(
+                    {
+                        "delete_status" : True,
+                        "message" : "Comment deleted successfully"
+                    },
+                    status=status.HTTP_204_NO_CONTENT
+                    )
+            return Response(
+                {
+                    "delete_status" : False,
+                    "message" : "You are not authorized to delete this comment, You can only delete your own comments"
+                },
+                status=status.HTTP_401_UNAUTHORIZED
+                )
+        
+        except Http404:
+            return Response(
+                {
+                    "delete_status" : False,
+                    "message" : "Comment not found"
+                },
+                status=status.HTTP_404_NOT_FOUND
+                )
     

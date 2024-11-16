@@ -1,5 +1,5 @@
 from config.env import env, env_to_enum
-from emails.enums import EmailSendingStrategy
+from socialblog.emails.enums import EmailSendingStrategy
 
 # local | mailtrap
 EMAIL_SENDING_STRATEGY = env_to_enum(EmailSendingStrategy, env("EMAIL_SENDING_STRATEGY", default="local"))
@@ -14,8 +14,8 @@ if EMAIL_SENDING_STRATEGY == EmailSendingStrategy.LOCAL:
     EMAIL_HOST = 'smtp.gmail.com'
     EMAIL_PORT = 587
     EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = env.str("GOOGLE_EMAIL_HOST_USER")
-    EMAIL_HOST_PASSWORD = env.str("GOOGLE_EMAIL_HOST_PASSWORD")
+    EMAIL_HOST_USER = 'user' #env.str("GOOGLE_EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = 'pass'#env.str("GOOGLE_EMAIL_HOST_PASSWORD")
 
 if EMAIL_SENDING_STRATEGY == EmailSendingStrategy.MAILTRAP:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

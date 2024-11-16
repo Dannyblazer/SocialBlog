@@ -1,18 +1,34 @@
 from django.urls import include, path
 
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+# from rest_framework_simplejwt.views import (
+#     TokenObtainPairView,
+#     TokenRefreshView,
+# )
+
+from user.apis import (
+    CustomObtainTokenPairView, 
+    CustomTokenRefreshView, 
+    UserLogoutApi
+                       )
+
+from .utils import AllEndpointsApi
+
 
 urlpatterns = [
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path("blogs/", include(("blog.urls", "blogs"))),
+    # authentication urls
+    path('account/login/', CustomObtainTokenPairView.as_view(), name='token_obtain_pair'), #----> Done
+    path('token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'), #----> Done
+    path('user/logout/', UserLogoutApi.as_view(), name='auth_logout'), #----> Done
+
+    # app urls
+    path("blogs/", include(("blog.urls", "blogs"))), #----> Done
     path("chat/", include(("chat.urls", "chats"))),
-    path("users/", include(("user.urls", "users"))),
+    path("users/", include(("user.urls", "users"))), #----> Done
     path("errors/", include(("errors.urls", "errors"))),
     path("files/", include(("files.urls", "files"))),
+
+    # utils(accessible only by superuser) ---> see all endpoints
+    path("endpoints/", AllEndpointsApi.as_view(), name="all-endpoints"),
     
 ]
 """path(
