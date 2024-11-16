@@ -74,7 +74,10 @@ def accept_follow_request(user, request_id):
     return False
 
 
-def decline_follow_request(request_id):
+def decline_follow_request(user, request_id):
     follow_request = get_object_or_404(Follow, pk=request_id, status=Follow.STATUS.PENDING)
-    follow_request.delete()
+    if user == follow_request.followed:
+        follow_request.delete()
+        return True
+    return False
 
