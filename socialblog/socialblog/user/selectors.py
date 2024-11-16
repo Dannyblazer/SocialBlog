@@ -64,12 +64,13 @@ def unfollow_user(follower, followed):
     return False
 
 
-def accept_follow_request(request_id):
+def accept_follow_request(user, request_id):
     follow_request = get_object_or_404(Follow, pk=request_id)
-    if follow_request.status != Follow.STATUS.ACCEPTED:
-        follow_request.status = Follow.STATUS.ACCEPTED
-        follow_request.save()
-        return True
+    if user != follow_request.follower:
+        if follow_request.status != Follow.STATUS.ACCEPTED:
+            follow_request.status = Follow.STATUS.ACCEPTED
+            follow_request.save()
+            return True
     return False
 
 
