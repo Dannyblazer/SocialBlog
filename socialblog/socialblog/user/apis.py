@@ -255,7 +255,8 @@ class UserFollowRequestListApi(ApiAuthMixin, APIView):
 
 class UserRequestAcceptApi(ApiAuthMixin, APIView):
     def post(self, request, request_id):
-        request_status = accept_follow_request(request_id)
+        user = request.user
+        request_status = accept_follow_request(user, request_id)
         return Response(status=status.HTTP_202_ACCEPTED if request_status else status.HTTP_409_CONFLICT)
 
 class UserRequestDeclineApi(ApiAuthMixin, APIView):
