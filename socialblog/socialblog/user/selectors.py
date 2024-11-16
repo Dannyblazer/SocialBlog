@@ -65,6 +65,7 @@ def unfollow_user(follower, followed):
 
 
 def accept_follow_request(user, request_id):
+    # A better fix would be to include the authenticated user(user) in the follow request query but that'll be later
     follow_request = get_object_or_404(Follow, pk=request_id)
     if user != follow_request.follower:
         if follow_request.status != Follow.STATUS.ACCEPTED:
@@ -75,6 +76,7 @@ def accept_follow_request(user, request_id):
 
 
 def decline_follow_request(user, request_id):
+    # A better fix would be to include the authenticated user(user) in the follow request query but that'll be later
     follow_request = get_object_or_404(Follow, pk=request_id, status=Follow.STATUS.PENDING)
     if user == follow_request.followed:
         follow_request.delete()
