@@ -50,9 +50,10 @@ def is_following(user, other_user) -> bool:
 
 
 def follow_user(follower, followed):
-    if not is_following(follower, followed):
-        Follow.objects.create(follower=follower, followed=followed, status=Follow.STATUS.PENDING)
-        return True
+    if follower != followed:
+        if not is_following(follower, followed):
+            Follow.objects.create(follower=follower, followed=followed, status=Follow.STATUS.PENDING)
+            return True
     return False
 
 
