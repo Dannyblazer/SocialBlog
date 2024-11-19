@@ -2,11 +2,9 @@ from django.apps import apps
 from django.db.models.query import QuerySet
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from .models import BaseUser, Follow
-
 from user.filters import BaseUserFilter
+from .models import BaseUser, Follow
 from django.db import transaction
-
 
 
 def user_get_login_data(*, user: BaseUser):
@@ -49,9 +47,10 @@ def is_following(user, other_user) -> bool:
 
 
 def follow_user(follower, followed):
-    if not is_following(follower, followed):
-        Follow.objects.create(follower=follower, followed=followed, status=Follow.STATUS.PENDING)
-        return True
+    if follower != followed:
+        if not is_following(follower, followed):
+            Follow.objects.create(follower=follower, followed=followed, status=Follow.STATUS.PENDING)
+            return True
     return False
 
 
@@ -62,12 +61,15 @@ def unfollow_user(follower, followed):
     return False
 
 
-def accept_follow_request(request_id):
+def accept_follow_request(user, request_id):
     """
-    Accept a follow request.
+    Accept a follow request if the user is authorized.
     """
     follow_request = get_object_or_404(Follow, pk=request_id)
     
+    if user != follow_request.follower:
+        return False  # User is not authorized to accept this request
+
     if follow_request.status == Follow.STATUS.ACCEPTED:
         return False  # Request is already accepted
 
@@ -78,14 +80,12 @@ def accept_follow_request(request_id):
     return True
 
 
-def decline_follow_request(request_id: int) -> bool:
+def decline_follow_request(user, request_id):
     """
-    Decline a follow request.
+    Decline a follow request if the user is authorized.
     """
     follow_request = get_object_or_404(Follow, pk=request_id, status=Follow.STATUS.PENDING)
-    follow_request.delete()
-    return True
-
-    # follow_request = get_object_or_404(Follow, pk=request_id, status=Follow.STATUS.PENDING)
-    # follow_request.delete()
-
+    if user == follow_request.followed:
+        follow_request.delete()
+        return True
+    return False

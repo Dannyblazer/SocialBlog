@@ -343,8 +343,13 @@ class UserRequestAcceptApi(ApiAuthMixin, APIView):
     def post(self, request, request_id):
         try:
             # Call the utility function to accept the follow request
-            accept_follow_request(request_id)
-            if accept_follow_request(request_id):
+class UserRequestAcceptApi(ApiAuthMixin, APIView):
+    def post(self, request, request_id):
+        try:
+            # Call the utility function to accept the follow request
+            user = request.user
+            request_status = accept_follow_request(user, request_id)
+            if request_status:
                 return Response(
                     {
                         "accept_status": True,
@@ -374,7 +379,8 @@ class UserRequestDeclineApi(ApiAuthMixin, APIView):
     def post(self, request, request_id):
         try:
             # Call the utility function to decline the follow request
-            decline_follow_request(request_id)
+            user = request.user
+            decline_follow_request(user, request_id)
             return Response(
                 {
                     "decline_status": True,
@@ -390,6 +396,3 @@ class UserRequestDeclineApi(ApiAuthMixin, APIView):
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
-
-    
-
