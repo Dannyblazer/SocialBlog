@@ -4,12 +4,12 @@
 from pathlib import Path
 
 import environ, os
+env = environ.Env()
+environ.Env.read_env()  # By default, this looks for a .env file in the root directory.
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # socialblog/
 APPS_DIR = BASE_DIR / "socialblog"
-env = environ.Env()
-
 READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=True)
 if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
@@ -52,9 +52,9 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env("DB_NAME"),
-        'USER': env("DB_USER"),
-        'PASSWORD': env("DB_PASSWORD"),
+        'NAME': env.str("DB_NAME"),
+        'USER': env.str("DB_USER"),
+        'PASSWORD': env.str("DB_PASSWORD"),
         'HOST': 'localhost',
         'PORT': '5432',
     }
