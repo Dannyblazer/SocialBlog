@@ -75,6 +75,10 @@ class BaseUser(BaseModel, AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ['username',]
 
+    class Meta:
+        verbose_name = "User"
+        verbose_name_plural = "Users"
+
     def __str__(self):
         return f"{self.username}"
     
