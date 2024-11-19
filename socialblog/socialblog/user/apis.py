@@ -2,6 +2,9 @@
 from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework.response import Response
+from django.http import Http404
 from api.mixins import ApiAuthMixin
 
 from api.pagination import (
@@ -15,6 +18,103 @@ from user.selectors import (user_list, user_get, get_followers,
 from user.services import user_create, user_update, profile_update
 
 
+class CustomObtainTokenPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        try:
+            # Call the parent class to get the token response
+            response = super().post(request, *args, **kwargs)
+
+            # Extract tokens
+            tokens = response.data
+            access_token = tokens.get('access')
+            refresh_token = tokens.get('refresh')
+
+            if not access_token or not refresh_token:
+                raise ValueError("Tokens not generated.")
+
+            # Create a new response
+            res = Response(
+                {'login_status': True},
+                status=response.status_code
+            )
+
+            # Set cookies for tokens
+            res.set_cookie(
+                key='access_token',
+                value=access_token,
+                httponly=True,
+                secure=False,  # Set to True in production with HTTPS
+                samesite='Strict'
+            )
+            res.set_cookie(
+                key='refresh_token',
+                value=refresh_token,
+                httponly=True,
+                secure=False,  # Set to True in production with HTTPS
+                samesite='Strict'
+            )
+
+            return res
+
+        except Exception as e:
+            # Return error response
+            return Response({"error": str(e)}, status=400)
+
+class CustomTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        try:
+            refresh_token = request.COOKIES.get('refresh_token')
+
+            request.data['refresh'] = refresh_token
+            response = super().post(request, *args, **kwargs)
+
+            tokens = response.data
+
+            access_token = tokens.get('access')
+
+            res = Response()
+
+            res.data = {
+                'refreshed': True,
+                'access': access_token
+            }
+
+            res.set_cookie(
+                key='access_token',
+                value=access_token,
+                httponly=True,
+                secure=False,  # Set to True in production with HTTPS
+                samesite='Strict'
+            )
+
+            return res
+  
+        except Exception as e:
+            # Return error response
+            return Response(
+                {
+                    "error": str(e),
+                    "refreshed": False
+                }, 
+                status=400)
+
+class UserLogoutApi(APIView):
+    def post(self, request):
+        try:
+            res = Response()
+            res.delete_cookie('access_token')
+            res.delete_cookie('refresh_token')
+            res.data = {
+                'logout_status': True
+            }
+            return res
+        except Exception as e:
+            return Response(
+                {
+                    "error": str(e),
+                    "logout_status": False
+                }, 
+                status=400)
 
 class UserCreateApi(APIView):
     class InputSerializer(serializers.Serializer):
@@ -38,9 +138,13 @@ class UserCreateApi(APIView):
             )
         #output_serializer = self.OutputSerializer(user)
 
-        return Response(status=status.HTTP_201_CREATED)
-
-
+        return Response(
+            {
+                "created" : True,
+                "message" : "Account created successfully"
+            },
+            status=status.HTTP_201_CREATED
+            )
 
 class UserUpdateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
@@ -62,11 +166,9 @@ class UserUpdateApi(ApiAuthMixin, APIView):
         output_serializer = self.OutputSerializer(new_user)
         return Response({"data" : output_serializer.data}, status=status.HTTP_200_OK) 
 
-
-
 class UserListApi(ApiAuthMixin, APIView):
     class Pagination(LimitOffsetPagination):
-        default_limit = 3
+        default_limit = 10
 
     class FilterSerializer(serializers.Serializer):
         id = serializers.IntegerField(required=False)
@@ -94,8 +196,6 @@ class UserListApi(ApiAuthMixin, APIView):
             view=self,
         )
 
-
-
 class ProfileViewApi(ApiAuthMixin, APIView):
     class OutputSerializer(serializers.ModelSerializer):
         class Meta:
@@ -119,8 +219,6 @@ class ProfileViewApi(ApiAuthMixin, APIView):
         output_serializer = self.OutputSerializer(profile, context={'request': request})
 
         return Response({"data":output_serializer.data}, status=status.HTTP_200_OK)
-
-
 
 class ProfileUpdateApi(ApiAuthMixin, APIView):
     class InputSerializer(serializers.Serializer):
@@ -148,10 +246,7 @@ class ProfileUpdateApi(ApiAuthMixin, APIView):
         output_serializer = self.OutputSerializer(new_profile)
 
         return Response({"data": output_serializer.data}, status=status.HTTP_200_OK)
-        
-
-
-
+     
 class UserFollowApi(ApiAuthMixin, APIView):
 
     def post(self, request, user_id):
@@ -161,8 +256,6 @@ class UserFollowApi(ApiAuthMixin, APIView):
         following = follow_user(follower, followed)
         return Response(status=status.HTTP_202_ACCEPTED if following else status.HTTP_409_CONFLICT)
 
-
-
 class UserUnFollowApi(ApiAuthMixin, APIView):
 
     def post(self, request, user_id):
@@ -171,8 +264,6 @@ class UserUnFollowApi(ApiAuthMixin, APIView):
 
         following = unfollow_user(follower, followed)
         return Response(status=status.HTTP_202_ACCEPTED if following else status.HTTP_404_NOT_FOUND)
-
-
 
 class UserFollowerListApi(ApiAuthMixin, APIView):
     class Pagination(LimitOffsetPagination):
@@ -205,8 +296,6 @@ class UserFollowerListApi(ApiAuthMixin, APIView):
             view=self,
         )
         
-
-
 class UserFollowingListApi(ApiAuthMixin, APIView):
     class Pagination(LimitOffsetPagination):
         default_limit = 5
@@ -228,8 +317,6 @@ class UserFollowingListApi(ApiAuthMixin, APIView):
             view=self,
         )
        
-
-
 class UserFollowRequestListApi(ApiAuthMixin, APIView):
     class Pagination(LimitOffsetPagination):
         default_limit = 5
@@ -252,17 +339,59 @@ class UserFollowRequestListApi(ApiAuthMixin, APIView):
             view=self,
         )
     
-
 class UserRequestAcceptApi(ApiAuthMixin, APIView):
     def post(self, request, request_id):
-        user = request.user
-        request_status = accept_follow_request(user, request_id)
-        return Response(status=status.HTTP_202_ACCEPTED if request_status else status.HTTP_409_CONFLICT)
+        try:
+            # Call the utility function to accept the follow request
+            user = request.user
+            request_status = accept_follow_request(user, request_id)
+            if request_status:
+                return Response(
+                    {
+                        "accept_status": True,
+                        "message": "Request accepted successfully",
+                    },
+                    status=status.HTTP_202_ACCEPTED,
+                )
+            else:
+                return Response(
+                    {
+                        "accept_status": False,
+                        "message": "Request already accepted",
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
+        
+        except Http404:
+            return Response(
+                {
+                    "accept_status": False,
+                    "message": "Request not found",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
 
 class UserRequestDeclineApi(ApiAuthMixin, APIView):
     def post(self, request, request_id):
-        user = request.user
-        request_status = decline_follow_request(user, request_id)
-        return Response(status=status.HTTP_202_ACCEPTED if request_status else status.HTTP_409_CONFLICT)
+        try:
+            # Call the utility function to decline the follow request
+            user = request.user
+            decline_follow_request(user, request_id)
+            return Response(
+                {
+                    "decline_status": True,
+                    "message": "Request declined successfully",
+                },
+                status=status.HTTP_202_ACCEPTED,
+            )
+        except Http404:
+            return Response(
+                {
+                    "decline_status": False,
+                    "message": "Request not found",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
     
 
