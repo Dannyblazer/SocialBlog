@@ -32,5 +32,5 @@ class TriggerUnhandledExceptionApi(APIView):
     def get(self, request):
         raise Exception("Oops")
 
-        return Response()
+        #return Response()
 
