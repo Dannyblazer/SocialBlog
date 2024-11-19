@@ -2,10 +2,8 @@ from django.apps import apps
 from django.db.models.query import QuerySet
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from .models import BaseUser, Follow
-
 from user.filters import BaseUserFilter
-
+from .models import BaseUser, Follow
 
 
 
