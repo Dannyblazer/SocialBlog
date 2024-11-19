@@ -48,15 +48,13 @@ LOCALE_PATHS = [str(BASE_DIR / "locale")]
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 #DATABASES = {"default": env.db("DATABASE_URL")}
-DB_NAME = "social_db"
-DB_USER = "taskitly"
-DB_PASSWORD = "taskitlyforlife"
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': DB_NAME,
-        'USER': DB_USER,
-        'PASSWORD': DB_PASSWORD,
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env("DB_NAME"),
+        'USER': env("DB_USER"),
+        'PASSWORD': env("DB_PASSWORD"),
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -365,7 +363,10 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "api.exception_handlers.drf_default_with_modifications_exception_handler",
     # 'EXCEPTION_HANDLER': 'styleguide_example.api.exception_handlers.hacksoft_proposed_exception_handler',
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
-    "DEFAULT_AUTHENTICATION_CLASSES": ['rest_framework_simplejwt.authentication.JWTAuthentication',],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        # 'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'socialblog.api.token_authentication.CookiesJWTAuthentication',
+        ],
 }
 
 # django-cors-headers - https://github.com/adamchainz/django-cors-headers#setup
